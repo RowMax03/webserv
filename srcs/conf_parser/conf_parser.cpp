@@ -134,9 +134,38 @@ namespace confParser {
         tokens.push_back(str.substr(start, end));
         return tokens;
     }
-
-    void confParser::setServerConfigValue() {
-
+    void confParser::setServerConfigValue(std::vector<std::vector<std::string> >* serverConf) {
+        if (serverConf == NULL) {
+            std::cerr << "serverConf is null" << std::endl;
+            return;
+        }
+        for (size_t i = 0; i < serverConf->size(); ++i) {
+            if ((*serverConf)[i].size() < 2) {
+                std::cerr << "Insufficient elements in serverConf at index " << i << std::endl;
+                continue;
+            }
+            std::string key = (*serverConf)[i][0];
+            std::string value = (*serverConf)[i][1];
+            if (key == "listen") {
+                serverConfig->listen = std::atoi(value.data());
+            } else if (key == "server_name") {
+                serverConfig->server_name = value;
+            } else if (key == "server_names_hash_bucket_size") {
+                serverConfig->server_names_hash_bucket_size = std::atoi(value.data());
+            } else if (key == "client_max_body_size") {
+                serverConfig->client_max_body_size = value;
+            } else if (key == "error_page" && (*serverConf)[i].size() >= 3) {
+                if ((*serverConf)[i].size() < 3) {
+                    std::cerr << "Insufficient elements in serverConf for error_page at index " << i << std::endl;
+                    continue;
+                }
+                ErrorPage* newErrorPage = new ErrorPage;
+                newErrorPage->status = std::atoi(value.data());
+                newErrorPage->url = (*serverConf)[i][2];
+                newErrorPage->next = serverConfig->error_pages;
+                serverConfig->error_pages = newErrorPage;
+            }
+        }
     }
 
     void confParser::setLocationConfigValue() {
