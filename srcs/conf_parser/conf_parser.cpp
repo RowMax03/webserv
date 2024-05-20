@@ -168,7 +168,48 @@ namespace confParser {
         }
     }
 
-    void confParser::setLocationConfigValue() {
+    void confParser::setLocationConfigValue(std::vector<std::vector<std::vector<std::string> > >* locationConfs) {
+        if (locationConfs == NULL) {
+            std::cerr << "locationConfs is null" << std::endl;
+            return;
+        }
+        for (size_t i = 0; i < locationConfs->size(); ++i) {
+            LocationConfig* newLocationConfig = new LocationConfig;
+            for (size_t j = 0; j < (*locationConfs)[i].size(); ++j) {
+                if ((*locationConfs)[i][j].size() < 2) {
+                    std::cerr << "Insufficient elements in locationConfs at index " << i << ", " << j << std::endl;
+                    continue;
+                }
+                std::string key = (*locationConfs)[i][j][0];
+                std::string value = (*locationConfs)[i][j][1];
+                if (key == "location") {
+                    newLocationConfig->path = value;
+                } else if (key == "allow") {
+                    for (size_t k = 1; k < (*locationConfs)[i][j].size(); ++k) {
+                        newLocationConfig->methods[k-1] = (*locationConfs)[i][j][k];
+                    }
+                } else if (key == "return") {
+                    newLocationConfig->redirect_status = std::atoi(value.data());
+                    newLocationConfig->redirect_url = (*locationConfs)[i][j][2];
+                } else if (key == "root") {
+                    newLocationConfig->root = value;
+                } else if (key == "autoindex") {
+                    newLocationConfig->autoindex = (value == "on");
+                } else if (key == "index") {
+                    newLocationConfig->index = value;
+                }
+            }
+            newLocationConfig->next = serverConfig->locations;
+            serverConfig->locations = newLocationConfig;
+        }
+    }
+
+    std::string confParser::removeLeadingSpaces(const std::string& str) {
+        std::string::const_iterator i = str.begin();
+        while (i != str.end() && (*i == ' ' || *i == '\t' || *i == '\n' || *i == '\r')) {
+            ++i;
+        }
+        return std::string(i, str.end());
     }
 
 } // confParser
