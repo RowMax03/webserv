@@ -1,4 +1,3 @@
-
 #include "../../include/conf_parser.hpp"
 
 namespace confParser {
@@ -56,13 +55,19 @@ namespace confParser {
     }
 
     void confParser::parseConfigFile(const std::string& configFile) {
-        FILE* file = fopen(configFile.c_str(), "r");
+        std::ifstream file(configFile.data());
         if (!file) {
             std::cerr << "Unable to open file: " << configFile << std::endl;
             return;
         }
-        readConfigFile(fileno(file));
-        fclose(file);
+        std::vector<std::vector<std::string> >* serverConf = NULL;
+        std::vector<std::vector<std::vector<std::string> > >* locationConfs = NULL;
+        readConfigFile(file, serverConf, locationConfs);
+        setServerConfigValue(serverConf);
+        setLocationConfigValue(locationConfs);
+        delete serverConf;
+        delete locationConfs;
+        file.close();
     }
 
     void confParser::readConfigFile(int fd) {
