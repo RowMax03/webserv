@@ -36,7 +36,23 @@ namespace confParser {
     }
 
     confParser::~confParser() {
-        delete serverConfig;
+        if (serverConfig) {
+            ErrorPage* errorPage = serverConfig->error_pages;
+            while (errorPage != NULL) {
+                ErrorPage* next = errorPage->next;
+                delete errorPage;
+                errorPage = next;
+            }
+
+            LocationConfig* locationConfig = serverConfig->locations;
+            while (locationConfig != NULL) {
+                LocationConfig* next = locationConfig->next;
+                delete locationConfig;
+                locationConfig = next;
+            }
+
+            delete serverConfig;
+        }
     }
 
     void confParser::parseConfigFile(const std::string& configFile) {
