@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 17:00:13 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/20 18:24:50 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
  * @param interface The interface to bind the socket to, specified as an IP address in network byte order.
  * @param port The port number to bind the socket to.
  */
-Socket::Socket(int domain, int type, int protocol, u_long interface, int port)
+ServerSocket::ServerSocket(int domain, int type, int protocol, u_long interface, int port)
 {
 	if ((this->socket_fd = socket(domain, type, protocol)) == 0) {
 		perror("socket failed");
@@ -39,10 +39,48 @@ Socket::Socket(int domain, int type, int protocol, u_long interface, int port)
 	bind_socket();
 }
 
-void Socket::bind_socket()
+/**
+ * Destroys the Socket object.
+ *
+ * This destructor closes the socket file descriptor.
+ */
+ASocket::~ASocket()
+{
+	close(this->socket_fd);
+}
+
+/**
+ * Binds the socket to the specified interface and port.
+ *
+ * This function binds the socket to the interface and port specified in the constructor.
+ * If the bind operation fails, the program will print an error message and exit.
+ */
+void ServerSocket::bind_socket()
 {
 	if (::bind(this->socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) {
 		perror("bind failed");
 		exit(EXIT_FAILURE);
 	}
+}
+
+//getter
+
+/**
+ * Returns the file descriptor of the socket.
+ *
+ * @return The file descriptor of the socket.
+ */
+int ASocket::getFD()
+{
+	return this->socket_fd;
+}
+
+/**
+ * Returns the address structure of the socket.
+ *
+ * @return The address structure of the socket.
+ */
+struct sockaddr_in ServerSocket::getAddress()
+{
+	return this->address;
 }
