@@ -40,6 +40,13 @@ namespace confParser {
     }
 
     void confParser::parseConfigFile(const std::string& configFile) {
+        FILE* file = fopen(configFile.c_str(), "r");
+        if (!file) {
+            std::cerr << "Unable to open file: " << configFile << std::endl;
+            return;
+        }
+        readConfigFile(fileno(file));
+        fclose(file);
     }
 
     void confParser::readConfigFile(int fd) {
