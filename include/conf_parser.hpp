@@ -53,11 +53,13 @@ namespace confParser {
         ServerConfig* serverConfig;
     private:
         // Method to parse the configuration file
+        std::string removeLeadingSpaces(const std::string& str);
         void parseConfigFile(const std::string& configFile);
-        void readConfigFile(int fd);
-        char** tokenize(const char* str, const char* delim, int& numTokens);
-        void setServerConfigValue();
-        void setLocationConfigValue();
-    };
+        void readConfigFile(std::ifstream& file, std::vector<std::vector<std::string> >*& serverConf,
+                                        std::vector<std::vector<std::vector<std::string> > >*& locationConfs);
+        std::vector<std::string> tokenize(const std::string& str, const std::string& delim);
+        void setServerConfigValue(std::vector<std::vector<std::string> >* serverConf);
+        void setLocationConfigValue(std::vector<std::vector<std::vector<std::string> > >* locationConfs);
+        };
 
 } // confParser
