@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Socket.cpp                                         :+:      :+:    :+:   */
+/*   ServerSocket.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:24:50 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/20 18:31:34 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,16 +40,6 @@ ServerSocket::ServerSocket(int domain, int type, int protocol, u_long interface,
 }
 
 /**
- * Destroys the Socket object.
- *
- * This destructor closes the socket file descriptor.
- */
-ASocket::~ASocket()
-{
-	close(this->socket_fd);
-}
-
-/**
  * Binds the socket to the specified interface and port.
  *
  * This function binds the socket to the interface and port specified in the constructor.
@@ -63,17 +53,37 @@ void ServerSocket::bind_socket()
 	}
 }
 
-//getter
-
 /**
- * Returns the file descriptor of the socket.
+ * Accepts a new connection on the socket.
  *
- * @return The file descriptor of the socket.
+ * This function accepts a new connection on the socket and returns the file descriptor of the new socket.
+ * If the accept operation fails, the program will print an error message and exit.
+ *
+ * @return The file descriptor of the new socket.
  */
-int ASocket::getFD()
+ClientSocket ServerSocket::accept_socket()
 {
-	return this->socket_fd;
+	int new_socket;
+	int addrlen = sizeof(this->address);
+
+	if ((new_socket = accept(this->socket_fd, (struct sockaddr *)&this->address, (socklen_t*)&addrlen)) < 0) {
+		perror("accept failed");
+		exit(EXIT_FAILURE);
+	}
+
+	return ClientSocket(new_socket);
 }
+
+
+void ServerSocket::listen_socket(int backlog)
+{
+	if (listen(this->socket_fd, backlog) < 0) {
+		perror("listen failed");
+		exit(EXIT_FAILURE);
+	}
+}
+
+//getter
 
 /**
  * Returns the address structure of the socket.
