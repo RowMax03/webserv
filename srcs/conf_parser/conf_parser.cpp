@@ -70,20 +70,56 @@ namespace confParser {
         file.close();
     }
 
-    void confParser::readConfigFile(int fd) {
-        FILE* file = fdopen(fd, "r");
-        if (!file) {
-            std::cerr << "Unable to open file descriptor: " << fd << std::endl;
-            return;
+    void confParser::readConfigFile(std::ifstream& file, std::vector<std::vector<std::string> >*& serverConf, std::vector<std::vector<std::vector<std::string> > >*& locationConfs) {
+        bool boolVarServer = false;
+        bool boolVarLocation = false;
+        serverConf = new std::vector<std::vector<std::string> >;
+        locationConfs = new std::vector<std::vector<std::vector<std::string> > >;
+        std::string strLine;
+        while (std::getline(file, strLine)) {
+            strLine = removeLeadingSpaces(strLine);
+            if (strLine.empty() || strLine[0] == '#') {
+                continue;
+            }
+            size_t pos = strLine.find_first_of(";{}");
+            if (pos != std::string::npos) {
+                strLine = strLine.substr(0, pos + 1); // +1 to include the character at the found position
+            }
+            if (strLine.find("server {") != std::string::npos) {
+                boolVarServer = true;
+                continue;
+            }
+            if (strLine.find("location") != std::string::npos) {
+                boolVarLocation = true;
+            }
+            pos = strLine.find_first_of(";{");
+            if (pos != std::string::npos) {
+                strLine = strLine.substr(0, pos);
+            }
+
+            if (boolVarServer && !boolVarLocation && strLine[0] != '}') {
+
+                std::vector<std::string> tokens = tokenize(strLine, " ");
+                serverConf->push_back(tokens);
+            }
+
+            if (boolVarServer && boolVarLocation && strLine[0] != '}') {
+                std::vector<std::string> tokens = tokenize(strLine, " ");
+                if (strLine.find("location") != std::string::npos) {
+                    locationConfs->push_back(std::vector<std::vector<std::string> >());
+                }
+                locationConfs->back().push_back(tokens);
+            }
+
+            if(strLine.find("}") != std::string::npos && boolVarLocation && boolVarServer) {
+                boolVarLocation = false;
+                continue;
+            }
+            if(strLine.find("}") != std::string::npos && boolVarServer) {
+                boolVarServer = false;
+                break;
+            }
         }
-        char* line = NULL;
-        size_t len = 0;
-        ssize_t read;
-        while ((read = getline(&line, &len, file)) != -1) {
-            std::cout << line << std::endl;
-        }
-        delete[] line;
-        fclose(file);
     }
 
     }
