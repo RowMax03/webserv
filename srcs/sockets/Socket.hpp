@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:31:08 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/20 18:37:24 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ class ClientSocket : public ASocket
 {
 	public:
 		ClientSocket(int fd);
-		~ClientSocket();
 		ssize_t read_socket(void *buf, size_t len);
 		ssize_t write_socket(const void *buf, size_t len);
 };
