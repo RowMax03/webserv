@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:31:34 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/20 18:59:09 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,14 @@ ClientSocket ServerSocket::accept_socket()
 	return ClientSocket(new_socket);
 }
 
-
+/**
+ * Listens for incoming connections on the socket.
+ *
+ * This function listens for incoming connections on the socket with the specified backlog.
+ * If the listen operation fails, the program will print an error message and exit.
+ *
+ * @param backlog The maximum length of the queue of pending connections.
+ */
 void ServerSocket::listen_socket(int backlog)
 {
 	if (listen(this->socket_fd, backlog) < 0) {
