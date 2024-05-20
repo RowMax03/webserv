@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <vector>
 #include <fstream>
+
 namespace confParser {
 
     struct ErrorPage {

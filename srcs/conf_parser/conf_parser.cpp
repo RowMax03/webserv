@@ -81,24 +81,19 @@ namespace confParser {
             if (strLine.empty() || strLine[0] == '#') {
                 continue;
             }
-            size_t pos = strLine.find_first_of(";{}");
-            if (pos != std::string::npos) {
-                strLine = strLine.substr(0, pos + 1); // +1 to include the character at the found position
-            }
-            if (strLine.find("server {") != std::string::npos) {
-                boolVarServer = true;
-                continue;
-            }
-            if (strLine.find("location") != std::string::npos) {
-                boolVarLocation = true;
-            }
-            pos = strLine.find_first_of(";{");
+            size_t pos = strLine.find_first_of(";{");
             if (pos != std::string::npos) {
                 strLine = strLine.substr(0, pos);
             }
+            if (strLine.find("server ") != std::string::npos) {
+                boolVarServer = true;
+                continue;
+            }
+            if (strLine.find("location ") != std::string::npos) {
+                boolVarLocation = true;
+            }
 
             if (boolVarServer && !boolVarLocation && strLine[0] != '}') {
-
                 std::vector<std::string> tokens = tokenize(strLine, " ");
                 serverConf->push_back(tokens);
             }
@@ -122,18 +117,27 @@ namespace confParser {
         }
     }
 
-    std::vector<std::string> confParser::tokenize(const std::string& str, const std::string& delim) {
+std::vector<std::string> confParser::tokenize(const std::string& str, const std::string& delim) {
+        std::string reducedStr = str;
         std::vector<std::string> tokens;
         size_t start = 0;
-        size_t end = str.find(delim);
+        size_t end = reducedStr.find(delim);
         while (end != std::string::npos) {
-            tokens.push_back(str.substr(start, end - start));
+            if (end > start) {
+                tokens.push_back(reducedStr.substr(start, end - start));
+            }
             start = end + delim.length();
-            end = str.find(delim, start);
+            while (start < reducedStr.size() && reducedStr[start] == ' ') {
+                ++start;
+            }
+            end = reducedStr.find(delim, start);
         }
-        tokens.push_back(str.substr(start, end));
+        if (start < reducedStr.size()) {
+            tokens.push_back(reducedStr.substr(start, end));
+        }
         return tokens;
     }
+
     void confParser::setServerConfigValue(std::vector<std::vector<std::string> >* serverConf) {
         if (serverConf == NULL) {
             std::cerr << "serverConf is null" << std::endl;
