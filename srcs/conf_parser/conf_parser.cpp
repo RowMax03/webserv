@@ -50,6 +50,20 @@ namespace confParser {
     }
 
     void confParser::readConfigFile(int fd) {
+        FILE* file = fdopen(fd, "r");
+        if (!file) {
+            std::cerr << "Unable to open file descriptor: " << fd << std::endl;
+            return;
+        }
+        char* line = NULL;
+        size_t len = 0;
+        ssize_t read;
+        while ((read = getline(&line, &len, file)) != -1) {
+            std::cout << line << std::endl;
+        }
+        delete[] line;
+        fclose(file);
+    }
 
     }
 
