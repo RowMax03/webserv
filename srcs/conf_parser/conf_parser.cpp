@@ -117,7 +117,7 @@ namespace confParser {
         }
     }
 
-std::vector<std::string> confParser::tokenize(const std::string& str, const std::string& delim) {
+    std::vector<std::string> confParser::tokenize(const std::string& str, const std::string& delim) {
         std::string reducedStr = str;
         std::vector<std::string> tokens;
         size_t start = 0;
