@@ -1,4 +1,4 @@
-# HTTP Server in C++98 (Single-Threaded with `poll()`)
+# HTTP Server in C++98
 
 This project is a non-blocking HTTP server written in C++98. It uses `poll()` for I/O multiplexing and operates in a single-threaded environment.
 
