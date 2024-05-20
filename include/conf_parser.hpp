@@ -1,13 +1,21 @@
 #pragma once
 
 #include <string>
-#include <array>
-
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
 namespace confParser {
+
+    struct ErrorPage {
+        int status;
+        std::string url;
+        ErrorPage* next;
+    };
 
     struct LocationConfig {
         std::string path;
-        std::array<std::string, 3> methods;
+        std::string methods[3]; // GET, POST, DELETE
         int redirect_status;
         std::string redirect_url;
         std::string root;
@@ -22,7 +30,7 @@ namespace confParser {
         int listen;
         std::string server_name;
         int server_names_hash_bucket_size;
-        std::pair<int, std::string> error_page;
+        ErrorPage* error_pages;
         std::string client_max_body_size;
         LocationConfig* locations;
 
@@ -33,20 +41,19 @@ namespace confParser {
     public:
         // Constructor that takes a configuration file
         confParser(const std::string& configFile);
-
         // Copy constructor
         confParser(const confParser& other);
-
+        // Copy assignment operator
+        confParser& operator=(const confParser& other);
         // Destructor
         ~confParser();
-
         // ServerConfig member variable
         ServerConfig* serverConfig;
-
     private:
         // Method to parse the configuration file
         void parseConfigFile(const std::string& configFile);
         void readConfigFile(int fd);
+        char** tokenize(const char* str, const char* delim, int& numTokens);
         void setServerConfigValue();
         void setLocationConfigValue();
     };
