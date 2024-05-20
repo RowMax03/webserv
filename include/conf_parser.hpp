@@ -1,17 +1,21 @@
 #pragma once
 
 #include <string>
+#include <array>
+
 namespace confParser {
 
     struct LocationConfig {
         std::string path;
-        std::string methods;
+        std::array<std::string, 3> methods;
         int redirect_status;
         std::string redirect_url;
         std::string root;
         bool autoindex;
         std::string index;
         LocationConfig* next;
+
+        LocationConfig();
     };
 
     struct ServerConfig {
@@ -21,6 +25,8 @@ namespace confParser {
         std::pair<int, std::string> error_page;
         std::string client_max_body_size;
         LocationConfig* locations;
+
+        ServerConfig();
     };
 
     class confParser {

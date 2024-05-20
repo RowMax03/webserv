@@ -5,7 +5,7 @@ namespace confParser {
 
     LocationConfig::LocationConfig()
             : path(""),
-              methods(""),
+              methods({""}),
               redirect_status(0),
               redirect_url(""),
               root(""),
