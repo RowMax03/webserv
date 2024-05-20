@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <vector>
+#include <fstream>
 namespace confParser {
 
     struct ErrorPage {
