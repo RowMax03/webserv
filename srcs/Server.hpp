@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:31:53 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:43:45 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "sockets/Socket.hpp"
 #include <poll.h>
 #include <vector>
-#include <fcntl.h>
 
 
 #define MAX_BUFFER 1024
@@ -29,6 +28,7 @@ private:
 	std::vector<ClientSocket*> _clients;
 	std::vector<pollfd> _pollfds;
 	void removeClient(size_t i);
+	void addClient(ClientSocket *client);
 public:
 	Server();
 	~Server();
@@ -46,6 +46,12 @@ Server::~Server()
 	for (size_t i = 0; i < _clients.size(); i++) {
 		delete _clients[i];
 	}
+}
+
+void Server::addClient(ClientSocket *client)
+{
+	_clients.push_back(client);
+	_pollfds.push_back((pollfd){client->getFD(), POLLIN, 0});
 }
 
 void Server::removeClient(size_t i)
@@ -69,11 +75,7 @@ int Server::Start()
 				continue;
 			}
 			if (!i && _pollfds[i].revents & POLLIN) {
-				ClientSocket *client = server.accept_socket();
-				std::cout << "New connection\n";
-				fcntl(client->getFD(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-				_clients.push_back(client);
-				_pollfds.push_back((pollfd){client->getFD(), POLLIN, 0});
+				addClient(server.accept_socket());
 			}
 			else if (_pollfds[i].revents == POLLIN) {
 				char buffer[MAX_BUFFER] = {0};

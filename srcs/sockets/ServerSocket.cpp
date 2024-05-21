@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 15:52:55 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:37:35 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,10 @@ ClientSocket *ServerSocket::accept_socket()
 	if ((new_socket = accept(this->socket_fd, (struct sockaddr *)&this->address, (socklen_t*)&addrlen)) < 0) {
 		perror("accept failed");
 		exit(EXIT_FAILURE);
+	}
+	if (fcntl(new_socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0) {
+		perror("fcntl failed");
+		throw std::runtime_error("fcntl failed");
 	}
 
 	return new ClientSocket(new_socket);
