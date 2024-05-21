@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:05:27 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:23:48 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ private:
 	ServerSocket server;
 	std::vector<ClientSocket*> _clients;
 	std::vector<pollfd> _pollfds;
+	void removeClient(size_t i);
 public:
 	Server();
 	~Server();
@@ -42,6 +43,13 @@ Server::Server() : server(AF_INET, SOCK_STREAM, 0, INADDR_ANY, 8081)
 
 Server::~Server()
 {
+}
+
+void Server::removeClient(size_t i)
+{
+	delete _clients[i];
+	_clients.erase(_clients.begin() + i - 1);
+	_pollfds.erase(_pollfds.begin() + i);
 }
 
 int Server::Start()
@@ -69,9 +77,7 @@ int Server::Start()
 				ssize_t n = _clients[i - 1]->read_socket(buffer ,MAX_BUFFER);
 				if (n < 0) {
 					perror("read failed");
-					delete _clients[i - 1];
-					_clients.erase(_clients.begin() + i - 1);
-					_pollfds.erase(_pollfds.begin() + i);
+					removeClient(i);
 					continue;
 				}
 				printf("Received: %s\n", buffer);
@@ -82,9 +88,7 @@ int Server::Start()
 				ssize_t n = _clients[i - 1]->write_socket(response, strlen(response));
 				if (n < 0) {
 					perror("write failed");
-					delete _clients[i - 1];
-					_clients.erase(_clients.begin() + i - 1);
-					_pollfds.erase(_pollfds.begin() + i);
+					removeClient(i);
 					continue;
 				}
 				printf("Sending: %s\n", response);
