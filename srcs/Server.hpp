@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:43:45 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:58:58 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,25 +79,28 @@ int Server::Start()
 			}
 			else if (_pollfds[i].revents == POLLIN) {
 				char buffer[MAX_BUFFER] = {0};
-				ssize_t n = _clients[i - 1]->read_socket(buffer ,MAX_BUFFER);
-				if (n < 0) {
-					perror("read failed");
-					removeClient(i);
-					continue;
+				try {
+					_clients[i - 1]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
+					printf("Received: %s\n", buffer);
+					_pollfds[i].events = POLLOUT;
 				}
-				printf("Received: %s\n", buffer);
-				_pollfds[i].events = POLLOUT;
+				catch (const std::exception &e){
+					std::cerr << e.what() << std::endl;
+					removeClient(i);
+				}
 			}
 			else if (_pollfds[i].revents == POLLOUT) {
 				char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-				ssize_t n = _clients[i - 1]->write_socket(response, strlen(response));
-				if (n < 0) {
-					perror("write failed");
+				try {
+					_clients[i - 1]->write_socket(response, strlen(response)); //will be a sender function later
+					printf("Sending: %s\n", response);
+					_pollfds[i].events = POLLIN;
+				}
+				catch (const std::exception &e){
 					removeClient(i);
+					std::cerr << e.what() << std::endl;
 					continue;
 				}
-				printf("Sending: %s\n", response);
-				_pollfds[i].events = POLLIN;
 			}
 		}
 	}

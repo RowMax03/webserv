@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:29:41 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:54:23 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ ClientSocket::ClientSocket(int fd)
 	this->socket_fd = fd;
 }
 
-ssize_t	ClientSocket::read_socket(void *buf, size_t len)
+void	ClientSocket::read_socket(void *buf, size_t len)
 {
 	ssize_t n = read(this->socket_fd, buf, len);
 	if (n == 0) {
@@ -27,10 +27,10 @@ ssize_t	ClientSocket::read_socket(void *buf, size_t len)
 		// An error occurred
 		throw std::runtime_error("Read error: " + std::string(strerror(errno)));
 	}
-	return n;
+	return ;
 }
 
-ssize_t	ClientSocket::write_socket(const void *buf, size_t len)
+void	ClientSocket::write_socket(const void *buf, size_t len)
 {
 	ssize_t n = write(this->socket_fd, buf, len);
 	if (n == -1) {
@@ -38,5 +38,5 @@ ssize_t	ClientSocket::write_socket(const void *buf, size_t len)
 		close(this->socket_fd);
 		throw std::runtime_error("Write error: " + std::string(strerror(errno)));
 	}
-	return n;
+	return ;
 }
