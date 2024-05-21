@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:58:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 17:43:06 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ private:
 	std::vector<pollfd> _pollfds;
 	void removeClient(size_t i);
 	void addClient(ClientSocket *client);
+	void pollin(size_t i);
+	void pollout(size_t i);
 public:
 	Server();
 	~Server();
@@ -71,38 +73,46 @@ int Server::Start()
 		}
 		for (size_t i = 0; i < _pollfds.size(); i++) {
 			if (_pollfds[i].revents == 0) {
-				//std::cout << "Polling i: " << i << std::endl;
 				continue;
 			}
 			if (!i && _pollfds[i].revents & POLLIN) {
 				addClient(server.accept_socket());
 			}
-			else if (_pollfds[i].revents == POLLIN) {
-				char buffer[MAX_BUFFER] = {0};
-				try {
-					_clients[i - 1]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
-					printf("Received: %s\n", buffer);
-					_pollfds[i].events = POLLOUT;
-				}
-				catch (const std::exception &e){
-					std::cerr << e.what() << std::endl;
-					removeClient(i);
-				}
+			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
+				pollin(i);
 			}
-			else if (_pollfds[i].revents == POLLOUT) {
-				char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
-				try {
-					_clients[i - 1]->write_socket(response, strlen(response)); //will be a sender function later
-					printf("Sending: %s\n", response);
-					_pollfds[i].events = POLLIN;
-				}
-				catch (const std::exception &e){
-					removeClient(i);
-					std::cerr << e.what() << std::endl;
-					continue;
-				}
+			else if (_pollfds[i].revents == POLLOUT) { // ClientSocket is ready to write
+				pollout(i);
 			}
 		}
 	}
 	return 0;
+}
+
+void Server::pollin(size_t i)
+{
+	char buffer[MAX_BUFFER] = {0};
+	try {
+		_clients[i - 1]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
+		printf("Received: %s\n", buffer);
+		_pollfds[i].events = POLLOUT;
+	}
+	catch (const std::exception &e){
+		std::cerr << e.what() << std::endl;
+		removeClient(i);
+	}
+}
+
+void Server::pollout(size_t i)
+{
+	char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+	try {
+		_clients[i - 1]->write_socket(response, strlen(response)); //will be a sender function later
+		printf("Sending: %s\n", response);
+		_pollfds[i].events = POLLIN;
+	}
+	catch (const std::exception &e){
+		removeClient(i);
+		std::cerr << e.what() << std::endl;
+	}
 }
