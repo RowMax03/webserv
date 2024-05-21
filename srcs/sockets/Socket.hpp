@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:37:24 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:53:17 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,19 +29,6 @@ class ASocket
 
 };
 
-
-class ServerSocket : public ASocket
-{
-	public:
-		ServerSocket(int domain, int type, int protocol, u_long interface, int port);
-		void listen_socket(int backlog);
-		ClientSocket accept_socket();
-		struct sockaddr_in getAddress();
-	private:
-		struct sockaddr_in address;
-		void bind_socket();
-};
-
 class ClientSocket : public ASocket
 {
 	public:
@@ -49,3 +36,16 @@ class ClientSocket : public ASocket
 		ssize_t read_socket(void *buf, size_t len);
 		ssize_t write_socket(const void *buf, size_t len);
 };
+
+class ServerSocket : public ASocket
+{
+	public:
+		ServerSocket(int domain, int type, int protocol, u_long interface, int port);
+		void listen_socket(int backlog);
+		ClientSocket *accept_socket();
+		struct sockaddr_in getAddress();
+	private:
+		struct sockaddr_in address;
+		void bind_socket();
+};
+

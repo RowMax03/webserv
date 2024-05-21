@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:59:09 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:52:55 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ ServerSocket::ServerSocket(int domain, int type, int protocol, u_long interface,
 	this->address.sin_addr.s_addr = interface;
 	this->address.sin_port = htons(port);
 	bind_socket();
+	listen_socket(5);
 }
 
 /**
@@ -47,7 +48,7 @@ ServerSocket::ServerSocket(int domain, int type, int protocol, u_long interface,
  */
 void ServerSocket::bind_socket()
 {
-	if (::bind(this->socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) {
+	if (bind(this->socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) {
 		perror("bind failed");
 		exit(EXIT_FAILURE);
 	}
@@ -61,7 +62,7 @@ void ServerSocket::bind_socket()
  *
  * @return The file descriptor of the new socket.
  */
-ClientSocket ServerSocket::accept_socket()
+ClientSocket *ServerSocket::accept_socket()
 {
 	int new_socket;
 	int addrlen = sizeof(this->address);
@@ -71,7 +72,7 @@ ClientSocket ServerSocket::accept_socket()
 		exit(EXIT_FAILURE);
 	}
 
-	return ClientSocket(new_socket);
+	return new ClientSocket(new_socket);
 }
 
 /**

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:27:58 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/20 18:29:34 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 15:46:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ ASocket::ASocket()
  */
 ASocket::~ASocket()
 {
+	std::cout << "Closing socket " << this->socket_fd << std::endl;
 	close(this->socket_fd);
 }
 /**
