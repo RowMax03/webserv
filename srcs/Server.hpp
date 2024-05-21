@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:23:48 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/21 16:31:53 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,9 @@ Server::Server() : server(AF_INET, SOCK_STREAM, 0, INADDR_ANY, 8081)
 
 Server::~Server()
 {
+	for (size_t i = 0; i < _clients.size(); i++) {
+		delete _clients[i];
+	}
 }
 
 void Server::removeClient(size_t i)
