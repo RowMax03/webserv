@@ -11,12 +11,17 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "conf_parser/conf_parser.hpp"
 
 int main()
 {
-	Server server;
+    confParser::confParser conf("./webserv.conf");
 
-	server.Start();
+    conf.serverConfig->print();
+
+    Server server( *conf.serverConfig);
+
+    server.Start();
 
 	return 0;
 }

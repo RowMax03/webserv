@@ -18,6 +18,10 @@
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 
 class ASocket
 {
