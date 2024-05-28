@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/28 16:37:52 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/28 16:47:23 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,11 @@ void HttpParser::parse(const std::string& raw) {
 		std::getline(headerLine, value);
 		headers[key] = value.substr(1);
 	}
+	std::getline(request, body, '\0');
 }
 
 std::string HttpParser::getMethod() const { return method; }
 std::string HttpParser::getUrl() const { return url; }
 std::string HttpParser::getVersion() const { return version; }
+std::string HttpParser::getBody() const { return body; }
 std::map<std::string, std::string> HttpParser::getHeaders() const { return headers; }
