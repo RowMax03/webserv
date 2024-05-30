@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/30 19:38:36 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/30 19:53:23 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,14 @@ void HttpParser::parse(const std::string& raw) {
 }
 
 //envp needs to be null-terminated and freed after use
+/**
+* std::vector<std::string> vec = {"Hello", "World"};
+std::vector<char*> cstrs;
+for (size_t i = 0; i < vec.size(); ++i) {
+    cstrs.push_back(const_cast<char*>(vec[i].c_str()));
+}
+char** arr = &cstrs[0];
+*/
 std::vector<std::string> HttpParser::toCgiEnv() const {
 	std::vector<std::string> envp;
 	envp.push_back("REQUEST_METHOD=" + _method);
