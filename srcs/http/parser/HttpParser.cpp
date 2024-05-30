@@ -6,11 +6,18 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/30 19:24:07 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/30 19:38:36 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
+
+HttpParser::HttpParser(const std::string& request) : _contentLength(0), isCgi(false) {
+	parse(request);
+}
+
+HttpParser::~HttpParser() {}
+
 
 void HttpParser::parse(const std::string& raw) {
 	std::istringstream request(raw);
@@ -19,13 +26,8 @@ void HttpParser::parse(const std::string& raw) {
 	std::getline(request, line);
 	std::istringstream firstLine(line);
 	firstLine >> _method >> _url >> _version;
-
 	// Split the URL into path and query string
 	std::size_t queryPos = _url.find('?');
-	if (queryPos != std::string::npos) {
-		_queryString = _url.substr(queryPos + 1);
-		_url = _url.substr(0, queryPos);
-	}
 
 	while (std::getline(request, line) && line != "\r") {
 		std::istringstream headerLine(line);
@@ -41,14 +43,12 @@ void HttpParser::parse(const std::string& raw) {
 		request.read(&_bodyChars[0], _contentLength);
 		_body.assign(_bodyChars.begin(), _bodyChars.end());
 	}
-	else
-		_contentLength = 0;
+	parseUrl();
 }
 
 //envp needs to be null-terminated and freed after use
 std::vector<std::string> HttpParser::toCgiEnv() const {
 	std::vector<std::string> envp;
-
 	envp.push_back("REQUEST_METHOD=" + _method);
 	envp.push_back("SCRIPT_NAME=" + _scriptName);
 	envp.push_back("SERVER_PROTOCOL=" + _version);
@@ -73,8 +73,14 @@ std::vector<std::string> HttpParser::toCgiEnv() const {
 void HttpParser::parseUrl() {
 	std::size_t queryPos = _url.find('?');
 	std::string path = _url.substr(0, queryPos);
+	if (queryPos != std::string::npos) {
+		_queryString = _url.substr(queryPos + 1);
+		_url = _url.substr(0, queryPos);
+	}
+	// maybe change this to a regex or config variable later
 	std::size_t scriptPos = path.find("/cgi-bin/");
 	if (scriptPos != std::string::npos) {
+		isCgi = true;
 		_scriptName = path.substr(scriptPos);
 		std::size_t _pathInfoPos = _scriptName.find('/');
 		if (_pathInfoPos != std::string::npos) {
