@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/30 18:46:50 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/30 19:15:16 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ private:
 
 public:
 	void parse(const std::string& raw);
-	void toCgiEnv(char **envp) const;
+	std::vector<std::string> toCgiEnv() const;
 	std::string getMethod() const;
 	std::string getUrl() const;
 	std::string getVersion() const;

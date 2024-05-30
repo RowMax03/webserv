@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/30 18:46:54 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/30 19:24:07 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,17 +46,28 @@ void HttpParser::parse(const std::string& raw) {
 }
 
 //envp needs to be null-terminated and freed after use
-void HttpParser::toCgiEnv(char **envp) const {
-	envp[0] = strdup(("REQUEST_METHOD=" + _method).c_str());
-	//maybe needs a getter function later depending on implementation
-	envp[1] = strdup(("SCRIPT_NAME=" + _scriptName).c_str());
-	envp[2] = strdup(("SERVER_PROTOCOL=" + _version).c_str());
-	envp[3] = strdup(("CONTENT_LENGTH=" + std::to_string(_contentLength)).c_str());
-	envp[4] = strdup(("QUERY_STRING=" + _queryString).c_str());
-	//PATH_INFO is the part of the URL after the script name before the query string (if any)
-	//Also maybe needs a getter function later depending on implementation
-	envp[5] = strdup(("PATH_INFO=" + _pathInfo).c_str());
+std::vector<std::string> HttpParser::toCgiEnv() const {
+	std::vector<std::string> envp;
 
+	envp.push_back("REQUEST_METHOD=" + _method);
+	envp.push_back("SCRIPT_NAME=" + _scriptName);
+	envp.push_back("SERVER_PROTOCOL=" + _version);
+	std::ostringstream oss;
+	oss << _contentLength;
+	envp.push_back("CONTENT_LENGTH=" + oss.str());
+	envp.push_back("QUERY_STRING=" + _queryString);
+	envp.push_back("PATH_INFO=" + _pathInfo);
+
+	if (_method != "GET" && _method != "HEAD") {
+		std::map<std::string, std::string>::const_iterator it = _headers.find("Content-Type");
+		if (it != _headers.end()) {
+			envp.push_back("CONTENT_TYPE=" + it->second);
+		}
+	}
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it) {
+		envp.push_back("HTTP_" + it->first + "=" + it->second);
+	}
+	return envp;
 }
 
 void HttpParser::parseUrl() {
