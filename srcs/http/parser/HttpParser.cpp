@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 17:11:33 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/31 17:41:09 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ HttpParser::HttpParser(const std::string& request) : _contentLength(0), isCgi(fa
 
 HttpParser::~HttpParser() {}
 
-
+// parse the raw request into the method, url, version, headers, and body
 void HttpParser::parse(const std::string& raw) {
 	std::istringstream request(raw);
 	std::string line;
@@ -31,9 +31,6 @@ void HttpParser::parse(const std::string& raw) {
 	firstLine >> _method >> _url >> _version;
 	if (firstLine.fail() || !firstLine.eof() || !checkRequestLine())
 		throw std::runtime_error("Invalid request line");
-	// Split the URL into path and query string
-	std::size_t queryPos = _url.find('?');
-
 	while (std::getline(request, line) && line != "\r") {
 		std::istringstream headerLine(line);
 		std::string key;
@@ -67,15 +64,7 @@ bool HttpParser::checkRequestLine() {
 	return true;
 }
 
-//envp needs to be null-terminated and freed after use
-/**
-* std::vector<std::string> vec = {"Hello", "World"};
-std::vector<char*> cstrs;
-for (size_t i = 0; i < vec.size(); ++i) {
-    cstrs.push_back(const_cast<char*>(vec[i].c_str()));
-}
-char** arr = &cstrs[0];
-*/
+// turn the parsed request into a vector of strings that can be passed to execve later
 std::vector<std::string> HttpParser::toCgiEnv() const {
 	std::vector<std::string> envp;
 	envp.push_back("REQUEST_METHOD=" + _method);
@@ -124,6 +113,7 @@ std::string HttpParser::getVersion() const { return _version; }
 std::string HttpParser::getBody() const { return _body; }
 std::map<std::string, std::string> HttpParser::getHeaders() const { return _headers; }
 
+// trim whitespace from the beginning and end of a string
 std::string HttpParser::trim(const std::string& str) {
 	std::size_t first = str.find_first_not_of(" \t\r");
 	if (first == std::string::npos)
