@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/30 19:53:23 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/05/31 16:17:46 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ void HttpParser::parse(const std::string& raw) {
 	std::getline(request, line);
 	std::istringstream firstLine(line);
 	firstLine >> _method >> _url >> _version;
+	if (firstLine.fail() || !firstLine.eof())
+		throw std::runtime_error("Invalid request line");
 	// Split the URL into path and query string
 	std::size_t queryPos = _url.find('?');
 
@@ -33,14 +35,18 @@ void HttpParser::parse(const std::string& raw) {
 		std::istringstream headerLine(line);
 		std::string key;
 		std::getline(headerLine, key, ':');
+		if (headerLine.fail())
+			throw std::runtime_error("Invalid header line");
 		std::string value;
 		std::getline(headerLine, value);
-		_headers[key] = value.substr(1);
+		_headers[key] = trim(value);
 	}
 	if (_headers.find("Content-Length") != _headers.end()) {
 		_contentLength = std::stoi(_headers["Content-Length"]);
 		std::vector<char> _bodyChars(_contentLength);
 		request.read(&_bodyChars[0], _contentLength);
+		if (request.gcount() != _contentLength)
+			throw std::runtime_error("Body length does not match Content-Length header");
 		_body.assign(_bodyChars.begin(), _bodyChars.end());
 	}
 	parseUrl();
@@ -103,3 +109,11 @@ std::string HttpParser::getUrl() const { return _url; }
 std::string HttpParser::getVersion() const { return _version; }
 std::string HttpParser::getBody() const { return _body; }
 std::map<std::string, std::string> HttpParser::getHeaders() const { return _headers; }
+
+std::string HttpParser::trim(const std::string& str) {
+	std::size_t first = str.find_first_not_of(" \t");
+	if (first == std::string::npos)
+		return "";
+	std::size_t last = str.find_last_not_of(" \t");
+	return str.substr(first, last - first + 1);
+}
