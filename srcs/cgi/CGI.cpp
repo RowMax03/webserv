@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/05 18:36:32 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 18:47:52 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,28 +61,35 @@ void CGI::deleteEnv() {
  * @return std::string The response from the CGI script
  */
 std::string CGI::run() {
-	int inputPipe[2];
-	int outputPipe[2];
-
 	//document root, get from config later
 	std::string documentRoot = "/var/www/html";
+	// check if we can open the file
+	checkRigths(documentRoot + _request.getPath());
+
+	int inputPipe[2];
+	int outputPipe[2];
 
 	if (pipe(inputPipe) == -1 || pipe(outputPipe) == -1) {
 		throw std::runtime_error("pipe failed");
 	}
 
 	pid_t pid = fork();
-	if (pid == -1) {
+	if (pid == -1)
 		throw std::runtime_error("fork failed");
-	}
-	if (pid == 0) {
+	if (pid == 0)
 		handleChildProcess(inputPipe, outputPipe, documentRoot);
-	}
-	else {
+	else
 		return handleParentProcess(inputPipe, outputPipe, pid);
-	}
 }
 
+void CGI::checkRigths(const std::string &path) {
+	if (access(path.c_str(), F_OK) == -1) {
+		throw std::runtime_error("file not found");
+	}
+	if (access(path.c_str(), X_OK) == -1) {
+		throw std::runtime_error("file not executable");
+	}
+}
 
 /**
  * @brief Handle the child process
