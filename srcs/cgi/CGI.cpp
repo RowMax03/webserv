@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/05 18:25:30 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 18:32:34 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,40 +52,49 @@ std::string CGI::run() {
 		throw std::runtime_error("fork failed");
 	}
 	if (pid == 0) {
-		close(inputPipe[1]); // close write end of input pipe
-		close(outputPipe[0]); // close read end of output pipe
-		dup2(inputPipe[0], STDIN_FILENO);
-		dup2(outputPipe[1], STDOUT_FILENO);
-		std::string path = documentRoot + _request.getPath();
-		char* argv[] = { const_cast<char*>(path.c_str()), NULL };
-		execve(argv[0], argv, _env); // execve never returns if successful
-		std::string err = "execve failed";
-		write(outputPipe[1], err.c_str(), err.size());
+		handleChildProcess(inputPipe, outputPipe, documentRoot);
 	}
 	else {
-		std::string cgi_response;
-		close(inputPipe[0]); // close read end of input pipe
-		close(outputPipe[1]); // close write end of output pipe
-		write(inputPipe[1], _request.getBody().c_str(), _request.getBody().size());
-		close(inputPipe[1]);
-		char buffer[1024];
-		ssize_t bytesRead;
-		while ((bytesRead = read(outputPipe[0], buffer, sizeof(buffer))) > 0)
-		{
-			if (bytesRead == 14 && strncmp(buffer, "execve failed\n", 14) == 0)
-			{
-				close(outputPipe[0]);
-				kill(pid, SIGKILL);
-				throw std::runtime_error("execve failed");
-			}
-			cgi_response.append(buffer, bytesRead);
-		}
-		close(outputPipe[0]);
-		int status;
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-			return cgi_response;
-		else
-			throw std::runtime_error("CGI script failed");
+		return handleParentProcess(inputPipe, outputPipe, pid);
 	}
+}
+
+
+void CGI::handleChildProcess(int inputPipe[2], int outputPipe[2], const std::string& documentRoot) {
+	close(inputPipe[1]); // close write end of input pipe
+	close(outputPipe[0]); // close read end of output pipe
+	dup2(inputPipe[0], STDIN_FILENO);
+	dup2(outputPipe[1], STDOUT_FILENO);
+	std::string path = documentRoot + _request.getPath();
+	char* argv[] = { const_cast<char*>(path.c_str()), NULL };
+	execve(argv[0], argv, _env); // execve never returns if successful
+	std::string err = "execve failed";
+	write(outputPipe[1], err.c_str(), err.size());
+}
+
+std::string CGI::handleParentProcess(int inputPipe[2], int outputPipe[2], pid_t pid) {
+	std::string cgi_response;
+	close(inputPipe[0]); // close read end of input pipe
+	close(outputPipe[1]); // close write end of output pipe
+	write(inputPipe[1], _request.getBody().c_str(), _request.getBody().size());
+	close(inputPipe[1]);
+	char buffer[1024];
+	ssize_t bytesRead;
+	while ((bytesRead = read(outputPipe[0], buffer, sizeof(buffer))) > 0)
+	{
+		if (bytesRead == 14 && strncmp(buffer, "execve failed\n", 14) == 0)
+		{ // execve failed in child process so we kill it and throw an exception
+			close(outputPipe[0]);
+			kill(pid, SIGKILL);
+			throw std::runtime_error("execve failed");
+		}
+		cgi_response.append(buffer, bytesRead);
+	}
+	close(outputPipe[0]);
+	int status;
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+		return cgi_response;
+	else
+		throw std::runtime_error("CGI script failed");
 }
