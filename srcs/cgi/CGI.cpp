@@ -6,20 +6,35 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/05 18:32:34 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 18:36:32 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "CGI.hpp"
 
+/**
+ * @brief Construct a new CGI::CGI object
+ *
+ * @param request The HttpParser object that contains the request
+ * @param config The Config object that containts the cgi config
+ */
 CGI::CGI(const HttpParser &request) : _request(request) {
 	toCharArr(request.toCgiEnv());
 }
 
+/**
+ * @brief Destroy the CGI::CGI object
+ *
+ */
 CGI::~CGI() {
 	deleteEnv();
 }
 
+/**
+ * @brief Convert the envp vector to a char**
+ *
+ * @param envp The vector of strings that contains the envp
+ */
 void CGI::toCharArr(const std::vector<std::string> &envp) {
 	_env = new char*[envp.size() + 1];
 	for (size_t i = 0; i < envp.size(); i++) {
@@ -29,6 +44,10 @@ void CGI::toCharArr(const std::vector<std::string> &envp) {
 	_env[envp.size()] = NULL;
 }
 
+/**
+ * @brief Delete (free) the env char**
+ *
+ */
 void CGI::deleteEnv() {
 	for (size_t i = 0; _env[i]; i++) {
 		delete[] _env[i];
@@ -36,6 +55,11 @@ void CGI::deleteEnv() {
 	delete[] _env;
 }
 
+/**
+ * @brief Run the CGI script
+ *
+ * @return std::string The response from the CGI script
+ */
 std::string CGI::run() {
 	int inputPipe[2];
 	int outputPipe[2];
@@ -60,6 +84,13 @@ std::string CGI::run() {
 }
 
 
+/**
+ * @brief Handle the child process
+ *
+ * @param inputPipe The input pipe
+ * @param outputPipe The output pipe
+ * @param documentRoot The document root from the config
+ */
 void CGI::handleChildProcess(int inputPipe[2], int outputPipe[2], const std::string& documentRoot) {
 	close(inputPipe[1]); // close write end of input pipe
 	close(outputPipe[0]); // close read end of output pipe
@@ -72,6 +103,14 @@ void CGI::handleChildProcess(int inputPipe[2], int outputPipe[2], const std::str
 	write(outputPipe[1], err.c_str(), err.size());
 }
 
+/**
+ * @brief Handle the parent process
+ *
+ * @param inputPipe The input pipe
+ * @param outputPipe The output pipe
+ * @param pid The pid of the child process
+ * @return std::string The response from the CGI script
+ */
 std::string CGI::handleParentProcess(int inputPipe[2], int outputPipe[2], pid_t pid) {
 	std::string cgi_response;
 	close(inputPipe[0]); // close read end of input pipe
