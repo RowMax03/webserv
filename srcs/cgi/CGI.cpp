@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 23:47:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 18:25:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void CGI::deleteEnv() {
 	delete[] _env;
 }
 
-void CGI::run() {
+std::string CGI::run() {
 	int inputPipe[2];
 	int outputPipe[2];
 
@@ -57,21 +57,35 @@ void CGI::run() {
 		dup2(inputPipe[0], STDIN_FILENO);
 		dup2(outputPipe[1], STDOUT_FILENO);
 		std::string path = documentRoot + _request.getPath();
-		char* argv[] = { const_cast<char*>(path.c_str()), nullptr };
-		execve(argv[0], argv, _env);
-		std::cerr << "execve failed" << std::endl;
-		exit(1);
+		char* argv[] = { const_cast<char*>(path.c_str()), NULL };
+		execve(argv[0], argv, _env); // execve never returns if successful
+		std::string err = "execve failed";
+		write(outputPipe[1], err.c_str(), err.size());
 	}
 	else {
+		std::string cgi_response;
 		close(inputPipe[0]); // close read end of input pipe
 		close(outputPipe[1]); // close write end of output pipe
 		write(inputPipe[1], _request.getBody().c_str(), _request.getBody().size());
 		close(inputPipe[1]);
 		char buffer[1024];
 		ssize_t bytesRead;
-		while ((bytesRead = read(outputPipe[0], buffer, sizeof(buffer))) > 0) {
-			write(STDOUT_FILENO, buffer, bytesRead);
+		while ((bytesRead = read(outputPipe[0], buffer, sizeof(buffer))) > 0)
+		{
+			if (bytesRead == 14 && strncmp(buffer, "execve failed\n", 14) == 0)
+			{
+				close(outputPipe[0]);
+				kill(pid, SIGKILL);
+				throw std::runtime_error("execve failed");
+			}
+			cgi_response.append(buffer, bytesRead);
 		}
 		close(outputPipe[0]);
+		int status;
+		waitpid(pid, &status, 0);
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+			return cgi_response;
+		else
+			throw std::runtime_error("CGI script failed");
 	}
 }

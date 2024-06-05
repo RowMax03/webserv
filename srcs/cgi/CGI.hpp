@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 22:33:47 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 23:48:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 18:25:38 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include <string>
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
+
 
 #include "../http/parser/HttpParser.hpp"
 
@@ -27,7 +29,7 @@ class CGI
 		void toCharArr(const std::vector<std::string> &envp);
 		void deleteEnv();
 	public:
-		void run();
+		std::string run();
 		CGI(const HttpParser &request);
 		~CGI();
 };
