@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/05 18:47:52 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/05 22:43:14 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,11 @@ std::string CGI::run() {
 		return handleParentProcess(inputPipe, outputPipe, pid);
 }
 
+/**
+ * @brief Check if the file exists and is executable
+ *
+ * @param path The path to the file
+ */
 void CGI::checkRigths(const std::string &path) {
 	if (access(path.c_str(), F_OK) == -1) {
 		throw std::runtime_error("file not found");
