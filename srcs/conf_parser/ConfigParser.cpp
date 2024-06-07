@@ -26,6 +26,7 @@ namespace Config {
         std::ifstream file(configFile.data());
         if (!file) {
             std::cerr << "Unable to open file: " << configFile << std::endl;
+            throw std::invalid_argument("No config File");
             return;
         }
         readConfigFile(file);
