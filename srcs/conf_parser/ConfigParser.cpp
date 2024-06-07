@@ -1,30 +1,28 @@
-#include "conf_parser.hpp"
+#include "ConfigParser.hpp"
 
-namespace confParser {
+namespace Config {
 
-    confParser::confParser(const std::string& configFile)
-    {
+    Parser::Parser(const std::string &configFile) {
         parseConfigFile(configFile);
     }
 
-    confParser::confParser(const confParser& other)
-            : serverConfig(new ServerConf(*other.serverConfig))
-    {}
+    Parser::Parser(const Parser &other)
+            : _server(new Server(*other._server)) {}
 
-    confParser& confParser::operator=(const confParser& other) {
+    Parser &Parser::operator=(const Parser &other) {
         if (this != &other) {
-            delete serverConfig;
-            serverConfig = new ServerConf(*other.serverConfig);
+            delete _server;
+            _server = new Server(*other._server);
         }
         return *this;
     }
 
-    confParser::~confParser() {
-        delete serverConfig;
+    Parser::~Parser() {
+        delete _server;
     }
 
 
-    void confParser::parseConfigFile(const std::string& configFile) {
+    void Parser::parseConfigFile(const std::string &configFile) {
         std::ifstream file(configFile.data());
         if (!file) {
             std::cerr << "Unable to open file: " << configFile << std::endl;
@@ -35,7 +33,7 @@ namespace confParser {
         file.close();
     }
 
-    void confParser::readConfigFile(std::ifstream& file) {
+    void Parser::readConfigFile(std::ifstream &file) {
         bool boolVarServer = false;
         bool boolVarLocation = false;
         std::string strLine;
@@ -50,38 +48,38 @@ namespace confParser {
             }
             if (strLine.find("server ") != std::string::npos) {
                 boolVarServer = true;
-                serverConfig = new ServerConf;
+                _server = new Server;
                 continue;
             }
             if (strLine.find("location ") != std::string::npos) {
-                locationConfig = new LocationConfig;
+                _location = new Location;
                 boolVarLocation = true;
             }
 
             if (boolVarServer && !boolVarLocation && strLine[0] != '}') {
-                serverConfig->setConfigValue(tokenize(strLine, " "));
+                _server->setConfigValue(tokenize(strLine, " "));
             }
 
             if (boolVarServer && boolVarLocation && strLine[0] != '}') {
-               locationConfig->setConfigValue(tokenize(strLine, " "));
+                _location->setConfigValue(tokenize(strLine, " "));
             }
 
-            if(strLine.find("}") != std::string::npos && boolVarLocation && boolVarServer) {
+            if (strLine.find("}") != std::string::npos && boolVarLocation && boolVarServer) {
                 boolVarLocation = false;
-                serverConfig->locations[locationConfig->path] = *locationConfig;
-                delete locationConfig;
+                _server->locations[_location->path] = *_location;
+                delete _location;
                 continue;
             }
-            if(strLine.find("}") != std::string::npos && boolVarServer) {
+            if (strLine.find("}") != std::string::npos && boolVarServer) {
                 boolVarServer = false;
-                break;
+                servers.push_back(*_server);
             }
         }
     }
 
-    std::vector<std::string> confParser::tokenize(const std::string& str, const std::string& delim) {
+    std::vector <std::string> Parser::tokenize(const std::string &str, const std::string &delim) {
         std::string reducedStr = str;
-        std::vector<std::string> tokens;
+        std::vector <std::string> tokens;
         size_t start = 0;
         size_t end = reducedStr.find(delim);
         while (end != std::string::npos) {
@@ -101,15 +99,13 @@ namespace confParser {
     }
 
 
-    std::string confParser::removeLeadingSpaces(const std::string& str) {
+    std::string Parser::removeLeadingSpaces(const std::string &str) {
         std::string::const_iterator i = str.begin();
         while (i != str.end() && (*i == ' ' || *i == '\t' || *i == '\n' || *i == '\r')) {
             ++i;
         }
         return std::string(i, str.end());
     }
-
-
 
 
 } // confParser
