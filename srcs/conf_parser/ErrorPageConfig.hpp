@@ -1,30 +1,46 @@
 // error_page_conf.hpp
 #pragma once
 
-#include "conf_base.hpp"
+#include "ConfigBase.hpp"
 #include <iostream>
 #include <cstdio>
-namespace confParser {
-        class ErrorPageConf : public confBase {
-            public:
-                /* Values */
-                int status;
 
-                std::string url;
-                
-                /* Functions */
-                ErrorPageConf();
+namespace Config {
+    class ErrorPage : public confBase {
+    public:
+        /* Values */
+        int status;
 
-                ErrorPageConf(int status, const std::string& url = "");
+        std::string url;
 
-                ErrorPageConf(const ErrorPageConf& other);
+        /* Functions */
+        ErrorPage() : status(501), url("/fallbackError.html") {}
 
-                ErrorPageConf& operator=(const ErrorPageConf& other);
+        ErrorPage(int status, const std::string &url = "") : status(status), url(url) {
+            if (this->url.empty()) {
+                char buffer[50];
+                sprintf(buffer, "default_%d.html", this->status);
+                this->url = buffer;
+            }
+        }
 
-                ~ErrorPageConf();
+        ErrorPage(const ErrorPage &other) : confBase(other), status(other.status), url(other.url) {}
 
-                void print();
+        ErrorPage &operator=(const ErrorPage &other) {
+            if (this != &other) {
+                status = other.status;
+                url = other.url;
+            }
+            return *this;
+        }
 
-                void validate();
-        };
+        ~ErrorPage() {}
+
+        void print() const {
+            std::cout << "\t\tError Page: \n\t\t\tstatus=" << status << ", \n\t\t\turl=" << url << std::endl;
+        }
+
+        void validate() {
+        }
+    };
 }
