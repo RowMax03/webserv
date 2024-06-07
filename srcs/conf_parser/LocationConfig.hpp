@@ -1,19 +1,24 @@
 // location_config.hpp
 #pragma once
 
-#include "conf_base.hpp"
+#include "ConfigBase.hpp"
 #include <iostream>
 #include <vector>
 #include <cstdlib>
 
-namespace confParser {
-    class LocationConfig : public confBase {
+namespace Config {
+    class Location : public confBase {
     public:
-        LocationConfig() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), index("") {}
-        LocationConfig(const LocationConfig& other) : confBase(other), path(other.path), redirect_status(other.redirect_status), redirect_url(other.redirect_url), root(other.root), autoindex(other.autoindex), index(other.index) {
+        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), index("") {}
+
+        Location(const Location &other) : confBase(other), path(other.path),
+                                          redirect_status(other.redirect_status),
+                                          redirect_url(other.redirect_url), root(other.root),
+                                          autoindex(other.autoindex), index(other.index) {
             methods = other.methods;
         }
-        LocationConfig& operator=(const LocationConfig& other) {
+
+        Location &operator=(const Location &other) {
             if (this != &other) {
                 path = other.path;
                 methods = other.methods;
@@ -26,7 +31,7 @@ namespace confParser {
             return *this;
         }
 
-        void setConfigValue(const std::vector<std::string>& configValues) {
+        void setConfigValue(const std::vector <std::string> &configValues) {
             std::string key = configValues[0];
             if (!configValues[1].empty()) {
                 if (key == "location") {
@@ -44,37 +49,34 @@ namespace confParser {
                     root = configValues[1];
                 } else if (key == "autoindex") {
                     autoindex = (configValues[1] == "on") ? true : ((configValues[1] == "off") ? false
-                                : throw std::invalid_argument("Invalid autoindex value"));
+                                                                : throw std::invalid_argument("Invalid autoindex value"));
                 } else if (key == "index") {
                     index = configValues[1];
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
                         methods.push_back(configValues[i]);
                     }
-                    if (methods.size() < 1) {
-                        throw std::invalid_argument("no method in location specified");
-                    }
                 } else {
                     throw std::invalid_argument("Invalid key");
                 }
-            }
-            else
+            } else
                 throw std::invalid_argument("No Value for a key");
         }
 
-        ~LocationConfig() {}
+        ~Location() {}
 
         void print() const {
-            std::cout << "LocationConfig: path=" << path << ", methods=" << methods[0] << " " << (methods.size() > 1 ? methods[1]: "")  << ", redirect_status=" << redirect_status
-                      << ", redirect_url=" << redirect_url << ", root=" << root
-                      << ", autoindex=" << autoindex << ", index=" << index << std::endl;
+            std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
+                      << " " << (methods.size() > 1 ? methods[1] : "") << "\n\t\t\tredirect_status=" << redirect_status
+                      << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
+                      << "\n\t\t\tautoindex=" << autoindex << "\n\t\t\tindex=" << index << std::endl;
         }
 
         void validate() {
         }
 
         std::string path;
-        std::vector<std::string> methods;
+        std::vector <std::string> methods;
         int redirect_status;
         std::string redirect_url;
         std::string root;
