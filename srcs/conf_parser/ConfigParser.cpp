@@ -1,8 +1,8 @@
 #include "conf_parser.hpp"
+
 namespace confParser {
 
     confParser::confParser(const std::string& configFile)
-            : serverConfig(new ServerConf)
     {
         parseConfigFile(configFile);
     }
@@ -50,12 +50,12 @@ namespace confParser {
             }
             if (strLine.find("server ") != std::string::npos) {
                 boolVarServer = true;
-                serverConfig = new ServerConf();
+                serverConfig = new ServerConf;
                 continue;
             }
             if (strLine.find("location ") != std::string::npos) {
+                locationConfig = new LocationConfig;
                 boolVarLocation = true;
-                locationConfig = new LocationConfig();
             }
 
             if (boolVarServer && !boolVarLocation && strLine[0] != '}') {
@@ -63,7 +63,7 @@ namespace confParser {
             }
 
             if (boolVarServer && boolVarLocation && strLine[0] != '}') {
-                locationConfig->setConfigValue(tokenize(strLine, " "));
+               locationConfig->setConfigValue(tokenize(strLine, " "));
             }
 
             if(strLine.find("}") != std::string::npos && boolVarLocation && boolVarServer) {

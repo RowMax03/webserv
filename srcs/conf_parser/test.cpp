@@ -1,9 +1,15 @@
-#include "conf_parser.hpp"
+#include "ConfigParser.hpp"
 #include <iostream>
 
 int main() {
-    confParser::confParser parser("./config.template.conf");
-    std::cout << "Printing configuration for server: " << std::endl;
-    parser.serverConfig->print();
-    return (0);
+        Config::Parser config("./config.template.conf");
+       /* config.server->validate();
+        std::cout << "Printing configuration for server: " << std::endl;
+        config.server->print();*/
+       for (size_t i=0; config.servers.size() > i; i++) {
+           config.servers[i].validate();
+           std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;
+           config.servers[i].print();
+       }
+       return (0);
 }
