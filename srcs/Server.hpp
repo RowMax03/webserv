@@ -32,7 +32,7 @@ private:
 	void pollin(size_t i);
 	void pollout(size_t i);
 public:
-	Server(const Config::Server& conf);
+	Server(const Config::Server conf);
 	~Server();
 	int Start();
 };
