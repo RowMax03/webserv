@@ -12,7 +12,9 @@
 namespace Config {
     class Server : public confBase {
     public:
-        Server();
+        Server() : listen(0), server_name(""), server_names_hash_bucket_size(0), client_max_body_size("") {
+            locations = std::map<std::string, Location>();
+        }
 
         Server(const Server &other) : confBase(other), listen(other.listen), server_name(other.server_name),
                                       server_names_hash_bucket_size(other.server_names_hash_bucket_size),
