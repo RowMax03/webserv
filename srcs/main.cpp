@@ -11,15 +11,17 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
-#include "conf_parser/conf_parser.hpp"
+#include "conf_parser/ConfigParser.hpp"
 
 int main()
 {
-    confParser::confParser conf("./webserv.conf");
-
-    conf.serverConfig->print();
-
-    Server server( *conf.serverConfig);
+    Config::Parser config("./webserv.con")
+    for (size_t i=0; config.servers.size() > i; i++) {
+        config.servers[i].validate();
+        std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;
+        config.servers[i].print();
+    }
+    Server server( *config.servers[0]);
 
     server.Start();
 
