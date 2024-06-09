@@ -48,11 +48,15 @@ namespace Config {
                 strLine = strLine.substr(0, pos);
             }
             if (strLine.find("server ") != std::string::npos) {
+                if(boolVarServer == true)
+                    throw  std::invalid_argument("no closing parthensis for server config");
                 boolVarServer = true;
                 _server = new Server;
                 continue;
             }
             if (strLine.find("location ") != std::string::npos) {
+                if(boolVarLocation == true)
+                    throw std::invalid_argument("no closing parathensis for location config");
                 _location = new Location;
                 boolVarLocation = true;
             }
