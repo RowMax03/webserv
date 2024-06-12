@@ -15,7 +15,7 @@
 #include "sockets/Socket.hpp"
 #include <poll.h>
 #include <vector>
-
+#include "conf_parser/ConfigParser.hpp"
 
 #define MAX_BUFFER 1024
 
@@ -32,13 +32,14 @@ private:
 	void pollin(size_t i);
 	void pollout(size_t i);
 public:
-	Server();
+	Server(const Config::Server conf);
 	~Server();
 	int Start();
 };
 
 // * Will be changed to read from Config later *
-Server::Server() : server(AF_INET, SOCK_STREAM, 0, INADDR_ANY, 8081)
+// is implmented but have to talk of what to use where and how to is in my mind server name the domain but here it is int but a domain is string in my mind
+Server::Server(const Config::Server conf) : server(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.listen)
 {
 	this->_pollfds.push_back((pollfd){server.getFD(), POLLIN, 0});
 }
