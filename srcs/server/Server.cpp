@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 19:39:39 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 19:55:18 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,6 +134,7 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 			client->setResponse(_locations[longest_match]->handleRequest(request));
 		else
 		{
+			// 404 Not Found, replace with error page later
 			std::string body = "<html>\n"
 							   "<head><title>404 Not Found</title></head>\n"
 							   "<body>\n"
