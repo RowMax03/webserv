@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:22:23 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 14:23:13 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 13:04:14 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int main()
         std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;
         config.servers[i].print();
     }
-    Server server( config.servers[0]);
+    Server server(config);
 
     server.Start();
 

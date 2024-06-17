@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 12:55:52 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 13:01:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,14 +34,14 @@ private:
 	void pollin(size_t i);
 	void pollout(size_t i);
 public:
-	Server(const Config::Parser conf);
+	Server(const Config::Parser &conf);
 	~Server();
 	int Start();
 };
 
 // * Will be changed to read from Config later *
 // is implmented but have to talk of what to use where and how to is in my mind server name the domain but here it is int but a domain is string in my mind
-Server::Server(const Config::Parser conf) : _conf(conf) , _server_count(conf.servers.size())
+Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.servers.size())
 {
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
