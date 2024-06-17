@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:54:31 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 19:39:39 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,8 +93,7 @@ void Server::pollin(size_t i)
 		} while (bytes_read == MAX_BUFFER);
 		printf("Received: %s\n", request.c_str());
 		//will be a handler function later
-		HttpParser parser(request);
-		_clients[i - _server_count]->setResponse("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
+		matchLocation(_clients[i - _server_count], request);
 		_pollfds[i].events = POLLOUT;
 	}
 	catch (const std::exception &e){
@@ -117,3 +116,44 @@ void Server::pollout(size_t i)
 	}
 }
 
+void Server::matchLocation(ClientSocket *client, std::string &raw_request)
+{
+	try {
+		HttpParser request(raw_request);
+		std::string path = request.getPath();
+
+		std::string longest_match;
+		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
+			const std::string& location_path = it->first;
+			if (path.compare(0, location_path.size(), location_path) == 0 &&
+				(location_path.size() > longest_match.size())) {
+				longest_match = location_path;
+			}
+		}
+		if (!longest_match.empty())
+			client->setResponse(_locations[longest_match]->handleRequest(request));
+		else
+		{
+			std::string body = "<html>\n"
+							   "<head><title>404 Not Found</title></head>\n"
+							   "<body>\n"
+							   "<h1>404 Not Found</h1>\n"
+							   "<p>The requested URL was not found on this server.</p>\n"
+							   "</body>\n"
+							   "</html>\n";
+
+			std::ostringstream oss;
+			oss << "HTTP/1.1 404 Not Found\r\n"
+				<< "Content-Type: text/html\r\n"
+				<< "Content-Length: " << body.length() << "\r\n"
+				<< "\r\n"
+				<< body;
+
+			client->setResponse(oss.str());
+		}
+	}
+	catch (const std::exception &e) {
+		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally
+		std::cerr << e.what() << std::endl;
+	}
+}
