@@ -6,13 +6,13 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 16:41:37 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 19:51:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:32:17 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "LocationHandler.hpp"
 
-LocationHandler::LocationHandler(const Config::Location &location) : _location(location) {}
+LocationHandler::LocationHandler(const Config::Location &location, const int server_index) : _server_index(server_index) , _location(location) {}
 
 LocationHandler::~LocationHandler() {}
 
@@ -49,3 +49,5 @@ std::string LocationHandler::validRequest(HttpParser &request)
 		return "HTTP/1.1 418 I'm a teapot\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 	}
 }
+
+int LocationHandler::getServerIndex() const {return _server_index;}

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 19:55:18 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:30:47 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.se
 		_servers[i]->listen_socket(5);
 		_pollfds.push_back((pollfd){_servers[i]->getFD(), POLLIN, 0});
 		for (std::map<std::string, Config::Location>::const_iterator it = conf.servers[i].locations.begin(); it != conf.servers[i].locations.end(); ++it) {
-			_locations[it->first] = (new LocationHandler(it->second));
+			_locations[it->first] = (new LocationHandler(it->second, i));
 		}
 	}
 }
@@ -66,7 +66,7 @@ int Server::Start()
 			}
 			if (i < _server_count && _pollfds[i].revents & POLLIN) {
 				std::cout << "New connection for server i: " << i << std::endl;
-				addClient(_servers[i]->accept_socket());
+				addClient(_servers[i]->accept_socket(i));
 			}
 			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
 				std::cout << "Client ready to read at i: " << i << std::endl;
@@ -125,8 +125,9 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 		std::string longest_match;
 		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
 			const std::string& location_path = it->first;
-			if (path.compare(0, location_path.size(), location_path) == 0 &&
-				(location_path.size() > longest_match.size())) {
+			if (it->second->getServerIndex() == client->getServerIndex() &&
+				path.compare(0, location_path.size(), location_path) == 0 &&
+				location_path.size() > longest_match.size()) {
 				longest_match = location_path;
 			}
 		}
