@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 14:22:34 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:30:32 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@ Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.se
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
 		_servers[i]->listen_socket(5);
 		_pollfds.push_back((pollfd){_servers[i]->getFD(), POLLIN, 0});
+		for (std::map<std::string, Config::Location>::const_iterator it = conf.servers[i].locations.begin(); it != conf.servers[i].locations.end(); ++it) {
+			_locations[it->first] = (new LocationHandler(it->second));
+		}
 	}
 }
 
@@ -31,6 +34,9 @@ Server::~Server()
 	}
 	for (size_t i = 0; i < _server_count; i++) {
 		delete _servers[i];
+	}
+	for (std::map<std::string, LocationHandler*>::iterator it = _locations.begin(); it != _locations.end(); ++it) {
+		delete it->second;
 	}
 }
 
@@ -81,6 +87,9 @@ void Server::pollin(size_t i)
 	try {
 		_clients[i - _server_count]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
 		printf("Received: %s\n", buffer);
+		//will be a handler function later
+		HttpParser parser(buffer);
+		_clients[i - _server_count]->setResponse("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
 		_pollfds[i].events = POLLOUT;
 	}
 	catch (const std::exception &e){
@@ -91,7 +100,7 @@ void Server::pollin(size_t i)
 
 void Server::pollout(size_t i)
 {
-	const char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+	const char *response = _clients[i - _server_count]->getResponse().c_str();
 	try {
 		_clients[i - _server_count]->write_socket(response, strlen(response)); //will be a sender function later
 		printf("Sending: %s\n", response);
