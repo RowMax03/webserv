@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 16:27:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:48:02 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ ClientSocket::ClientSocket(int fd)
 	this->socket_fd = fd;
 }
 
-void	ClientSocket::read_socket(void *buf, size_t len)
+int	ClientSocket::read_socket(void *buf, size_t len)
 {
 	ssize_t n = read(this->socket_fd, buf, len);
 	if (n == 0) {
@@ -27,7 +27,7 @@ void	ClientSocket::read_socket(void *buf, size_t len)
 		// An error occurred
 		throw std::runtime_error("Read error: " + std::string(strerror(errno)));
 	}
-	return ;
+	return n;
 }
 
 void	ClientSocket::write_socket(const void *buf, size_t len)
