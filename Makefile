@@ -41,18 +41,26 @@ HTTP_RESPONSE_DIR = $(addprefix $(HTTP_DIR), response/)
 
 OBJ_DIR = .obj/
 OBJ_FILES = $(SRCS:.cpp=.o)
-ALL_OBJ = $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
+ALL_OBJ = $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRCS))
 ALL_OBJ_DIR = $(sort $(dir $(ALL_OBJ)))
 OBJS = $(addprefix $(OBJ_DIR), $(OBJ_FILES))
 
-all: $(NAME)
+all: $(OBJ_DIR) $(NAME)
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
-	mkdir -p $(@D)
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(NAME): $(ALL_OBJ)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(ALL_OBJ)
+
+re: fclean all
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+fclean: clean
+	rm -f $(NAME)
