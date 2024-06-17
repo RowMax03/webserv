@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 23:41:27 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 12:11:44 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ std::vector<std::string> HttpParser::toCgiEnv() const {
 
 void HttpParser::parseUrl() {
 	std::size_t queryPos = _url.find('?');
-	std::string _path = _url.substr(0, queryPos);
+	_path = _url.substr(0, queryPos);
 	if (queryPos != std::string::npos) {
 		_queryString = _url.substr(queryPos + 1);
 	}

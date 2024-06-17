@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/05 22:43:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 12:05:54 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,10 @@ void CGI::deleteEnv() {
  */
 std::string CGI::run() {
 	//document root, get from config later
-	std::string documentRoot = "/var/www/html";
+	std::string documentRoot = "/Users/max/Projekte/webserv";
 	// check if we can open the file
 	checkRigths(documentRoot + _request.getPath());
-
+	std::cout << documentRoot + _request.getPath() << std::endl;
 	int inputPipe[2];
 	int outputPipe[2];
 
