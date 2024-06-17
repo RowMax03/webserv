@@ -10,7 +10,7 @@ SRC_FILES = main.cpp
 SRC_DIR = srcs/
 
 SERVER = $(addprefix $(SERVER_DIR), $(SERVER_FILES))
-SERVER_FILES = Server.cpp
+SERVER_FILES = Server.cpp LocationHandler.cpp
 SERVER_DIR = $(addprefix $(SRC_DIR), server/)
 
 SOCKET = $(addprefix $(SOCKET_DIR), $(SOCKET_FILES))
