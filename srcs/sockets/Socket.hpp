@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:54:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 16:27:06 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,11 @@ class ASocket
 
 class ClientSocket : public ASocket
 {
+	private:
+		std::string _response;
 	public:
+		const std::string &getResponse() const;
+		void setResponse(const std::string &response);
 		ClientSocket(int fd);
 		void read_socket(void *buf, size_t len);
 		void write_socket(const void *buf, size_t len);
