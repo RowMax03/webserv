@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 17:41:09 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 12:11:44 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,15 +90,15 @@ std::vector<std::string> HttpParser::toCgiEnv() const {
 
 void HttpParser::parseUrl() {
 	std::size_t queryPos = _url.find('?');
-	std::string path = _url.substr(0, queryPos);
+	_path = _url.substr(0, queryPos);
 	if (queryPos != std::string::npos) {
 		_queryString = _url.substr(queryPos + 1);
 	}
 	// maybe change this to a regex or config variable later
-	std::size_t scriptPos = path.find("/cgi-bin/");
+	std::size_t scriptPos = _path.find("/cgi-bin/");
 	if (scriptPos != std::string::npos) {
 		isCgi = true;
-		_scriptName = path.substr(scriptPos);
+		_scriptName = _path.substr(scriptPos);
 		std::size_t _pathInfoPos = _scriptName.find('/');
 		if (_pathInfoPos != std::string::npos) {
 			_pathInfo = _scriptName.substr(_pathInfoPos);
@@ -111,6 +111,8 @@ std::string HttpParser::getMethod() const { return _method; }
 std::string HttpParser::getUrl() const { return _url; }
 std::string HttpParser::getVersion() const { return _version; }
 std::string HttpParser::getBody() const { return _body; }
+std::string HttpParser::getPath() const { return _path; }
+std::string HttpParser::getScriptName() const { return _scriptName; }
 std::map<std::string, std::string> HttpParser::getHeaders() const { return _headers; }
 
 // trim whitespace from the beginning and end of a string
