@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 13:06:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 14:22:34 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,20 @@
 Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.servers.size())
 {
 	for (size_t i = 0; i < _server_count; i++) {
-		_servers.push_back(ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
-		_servers[i].listen_socket(5);
-		_pollfds.push_back((pollfd){_servers[i].getFD(), POLLIN, 0});
+		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
+		_servers[i]->listen_socket(5);
+		_pollfds.push_back((pollfd){_servers[i]->getFD(), POLLIN, 0});
 	}
 }
 
 Server::~Server()
 {
+	std::cout << "Server destructor called" << std::endl;
 	for (size_t i = 0; i < _clients.size(); i++) {
 		delete _clients[i];
+	}
+	for (size_t i = 0; i < _server_count; i++) {
+		delete _servers[i];
 	}
 }
 
@@ -55,12 +59,15 @@ int Server::Start()
 				continue;
 			}
 			if (i < _server_count && _pollfds[i].revents & POLLIN) {
-				addClient(_servers[i].accept_socket());
+				std::cout << "New connection for server i: " << i << std::endl;
+				addClient(_servers[i]->accept_socket());
 			}
 			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
+				std::cout << "Client ready to read at i: " << i << std::endl;
 				pollin(i);
 			}
 			else if (_pollfds[i].revents == POLLOUT) { // ClientSocket is ready to write
+				std::cout << "Client ready to write at i: " << i << std::endl;
 				pollout(i);
 			}
 		}
@@ -72,7 +79,7 @@ void Server::pollin(size_t i)
 {
 	char buffer[MAX_BUFFER] = {0};
 	try {
-		_clients[i - 1]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
+		_clients[i - _server_count]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
 		printf("Received: %s\n", buffer);
 		_pollfds[i].events = POLLOUT;
 	}
@@ -84,9 +91,9 @@ void Server::pollin(size_t i)
 
 void Server::pollout(size_t i)
 {
-	char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+	const char *response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 	try {
-		_clients[i - 1]->write_socket(response, strlen(response)); //will be a sender function later
+		_clients[i - _server_count]->write_socket(response, strlen(response)); //will be a sender function later
 		printf("Sending: %s\n", response);
 		_pollfds[i].events = POLLIN;
 	}

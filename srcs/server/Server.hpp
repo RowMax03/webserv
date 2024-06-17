@@ -6,16 +6,16 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 13:06:09 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 13:53:34 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "sockets/Socket.hpp"
+#include "../sockets/Socket.hpp"
 #include <poll.h>
 #include <vector>
-#include "conf_parser/ConfigParser.hpp"
+#include "../conf_parser/ConfigParser.hpp"
 
 #define MAX_BUFFER 1024
 
@@ -25,7 +25,7 @@ class Server
 {
 private:
 	Config::Parser _conf;
-	std::vector<ServerSocket> _servers;
+	std::vector<ServerSocket*> _servers;
 	size_t _server_count;
 	std::vector<ClientSocket*> _clients;
 	std::vector<pollfd> _pollfds;
