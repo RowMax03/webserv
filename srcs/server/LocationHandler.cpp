@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 16:41:37 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:59:07 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 19:51:12 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ std::string LocationHandler::handleRequest(HttpParser &request)
 			return validRequest(request);
 		}
 	}
-	return "405";
+	return "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 }
 
 std::string LocationHandler::validRequest(HttpParser &request)
@@ -38,14 +38,14 @@ std::string LocationHandler::validRequest(HttpParser &request)
 			std::cerr << e.what() << std::endl;
 			std::string error = e.what();
 			if (error == "file not found")
-				return "404";
+				return "HTTP/1.1 404 File Not Found\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 			else if (error == "file not executable")
-				return "403";
+				return "HTTP/1.1 403 Forbidden\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 			else
-				return "500";
+				return "HTTP/1.1 500 Internal Server Error\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 		}
 	} else {
 		// Static
-		return "HTTP/1.1 418 I'm a teapot\r\n\r\n";
+		return "HTTP/1.1 418 I'm a teapot\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 	}
 }
