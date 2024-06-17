@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:30:32 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:54:31 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,12 +83,17 @@ int Server::Start()
 
 void Server::pollin(size_t i)
 {
-	char buffer[MAX_BUFFER] = {0};
+	int bytes_read;
+	std::string request;
 	try {
-		_clients[i - _server_count]->read_socket(buffer ,MAX_BUFFER); //will be a handler function later
-		printf("Received: %s\n", buffer);
+		do {
+			char buffer[MAX_BUFFER] = {0};
+			bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER);
+			request += buffer;
+		} while (bytes_read == MAX_BUFFER);
+		printf("Received: %s\n", request.c_str());
 		//will be a handler function later
-		HttpParser parser(buffer);
+		HttpParser parser(request);
 		_clients[i - _server_count]->setResponse("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
 		_pollfds[i].events = POLLOUT;
 	}
