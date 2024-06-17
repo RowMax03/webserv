@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:09:53 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:55:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
  * @param request The HttpParser object that contains the request
  * @param config The Config object that containts the cgi config
  */
-CGI::CGI(const HttpParser &request, const std::string &documentRoot) : _request(request), _documentRoot(documentRoot) {
+CGI::CGI(const HttpParser &request, const std::string &documentRoot) : _documentRoot(documentRoot), _request(request) {
 	toCharArr(request.toCgiEnv());
 }
 
