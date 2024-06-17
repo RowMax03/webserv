@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:54:23 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 16:27:58 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,3 +40,7 @@ void	ClientSocket::write_socket(const void *buf, size_t len)
 	}
 	return ;
 }
+
+// Getters and setters
+const std::string &ClientSocket::getResponse() const {return _response;}
+void ClientSocket::setResponse(const std::string &response) {_response = response;}
