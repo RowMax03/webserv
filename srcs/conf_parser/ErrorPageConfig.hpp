@@ -17,11 +17,11 @@ namespace Config {
         ErrorPage() : status(501), url("/fallbackError.html") {}
 
         ErrorPage(int status, const std::string &url = "") : status(status), url(url) {
-            if (this->url.empty()) {
-                char buffer[50];
-                sprintf(buffer, "default_%d.html", this->status);
-                this->url = buffer;
-            }
+		if (this->url.empty()) {
+			char buffer[50];
+			snprintf(buffer, sizeof(buffer), "default_%d.html", this->status);
+			this->url = buffer;
+		}
         }
 
         ErrorPage(const ErrorPage &other) : confBase(other), status(other.status), url(other.url) {}

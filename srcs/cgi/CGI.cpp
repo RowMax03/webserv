@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 12:15:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 13:45:03 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ std::string CGI::run() {
 		handleChildProcess(inputPipe, outputPipe, documentRoot);
 	else
 		return handleParentProcess(inputPipe, outputPipe, pid);
+	return "";
 }
 
 /**
