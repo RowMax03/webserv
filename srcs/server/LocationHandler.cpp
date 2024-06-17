@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 16:41:37 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:32:17 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:40:23 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ std::string LocationHandler::validRequest(HttpParser &request)
 		catch (const std::exception &e) {
 			std::cerr << e.what() << std::endl;
 			std::string error = e.what();
+			// Error handling, replace with error handler later
 			if (error == "file not found")
 				return "HTTP/1.1 404 File Not Found\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 			else if (error == "file not executable")
