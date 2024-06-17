@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 12:05:54 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 12:15:12 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,6 @@ std::string CGI::run() {
 	std::string documentRoot = "/Users/max/Projekte/webserv";
 	// check if we can open the file
 	checkRigths(documentRoot + _request.getPath());
-	std::cout << documentRoot + _request.getPath() << std::endl;
 	int inputPipe[2];
 	int outputPipe[2];
 

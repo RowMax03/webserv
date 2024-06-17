@@ -8,7 +8,6 @@ TEST(CGITest, TestRun) {
 							  "\r\n";
 
 	HttpParser request(httpRequest);
-	std::cout << request.getPath() << std::endl;
 	CGI cgi(request);
 
 	// Test that run() returns the expected output
