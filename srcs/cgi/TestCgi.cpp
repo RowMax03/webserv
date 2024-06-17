@@ -1,6 +1,9 @@
 #include "CGI.hpp"
 #include <gtest/gtest.h>
 
+
+//For Mac compilation run: g++ -std=c++14 -I /opt/homebrew/include/ -L /opt/homebrew/lib/ -lgtest -lgtest_main -pthread TestCgi.cpp CGI.cpp ../http/parser/HttpParser.cpp -o TestCgi
+
 TEST(CGITest, TestRun) {
 	// Initialize with appropriate values
 	std::string httpRequest = "GET /cgi-bin/HelloWorld.cgi HTTP/1.1\r\n"
