@@ -33,9 +33,10 @@ public:
     }
 
     std::string serialize() {
-        std::string response = responseHead.serialize();
-        response += responseBody.serialize();
-
+        std::string body = responseBody.serialize();
+        responseHead.setContentLength(std::to_string(body.size()));
+        std::string head = responseHead.serialize();
+        std::string response = head + body;
         return response;
     }
 };
