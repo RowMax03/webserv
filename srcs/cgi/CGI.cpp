@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 12:15:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:55:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
  * @param request The HttpParser object that contains the request
  * @param config The Config object that containts the cgi config
  */
-CGI::CGI(const HttpParser &request) : _request(request) {
+CGI::CGI(const HttpParser &request, const std::string &documentRoot) : _documentRoot(documentRoot), _request(request) {
 	toCharArr(request.toCgiEnv());
 }
 
@@ -62,9 +62,9 @@ void CGI::deleteEnv() {
  */
 std::string CGI::run() {
 	//document root, get from config later
-	std::string documentRoot = "/Users/max/Projekte/webserv";
+	//std::string documentRoot = "/Users/max/Projekte/webserv";
 	// check if we can open the file
-	checkRigths(documentRoot + _request.getPath());
+	checkRigths(_documentRoot + _request.getPath());
 	int inputPipe[2];
 	int outputPipe[2];
 
@@ -76,9 +76,10 @@ std::string CGI::run() {
 	if (pid == -1)
 		throw std::runtime_error("fork failed");
 	if (pid == 0)
-		handleChildProcess(inputPipe, outputPipe, documentRoot);
+		handleChildProcess(inputPipe, outputPipe, _documentRoot);
 	else
 		return handleParentProcess(inputPipe, outputPipe, pid);
+	return "";
 }
 
 /**

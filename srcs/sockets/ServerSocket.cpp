@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/21 16:37:35 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:19:06 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void ServerSocket::bind_socket()
  *
  * @return The file descriptor of the new socket.
  */
-ClientSocket *ServerSocket::accept_socket()
+ClientSocket *ServerSocket::accept_socket(const int i)
 {
 	int new_socket;
 	int addrlen = sizeof(this->address);
@@ -76,7 +76,7 @@ ClientSocket *ServerSocket::accept_socket()
 		throw std::runtime_error("fcntl failed");
 	}
 
-	return new ClientSocket(new_socket);
+	return new ClientSocket(new_socket, i);
 }
 
 /**

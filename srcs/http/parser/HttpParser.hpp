@@ -6,9 +6,11 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/05/31 23:41:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 18:54:47 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#pragma once
 
 #include <string>
 #include <sstream>

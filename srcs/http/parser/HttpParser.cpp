@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 12:11:44 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/17 20:47:21 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ void HttpParser::parse(const std::string& raw) {
 	parseUrl();
 }
 
+// change to also throw an exception instead of just returning false later
 bool HttpParser::checkRequestLine() {
 	if (_method.empty() || _url.empty() || _version.empty())
 		return false;
