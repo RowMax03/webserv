@@ -3,7 +3,7 @@ NAME = webserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRCS = $(SRC) $(SERVER) $(SOCKET) $(CGI) $(CONFPARSER) $(HTTP_PARSER) $(HTTP_RESPONSE)
+SRCS = $(SRC) $(SERVER) $(SOCKET) $(CGI) $(CONFPARSER) $(HTTP_PARSER) $(HTTP_RESPONSE) $(HTTP_STATIC)
 
 SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
 SRC_FILES = main.cpp
@@ -36,6 +36,11 @@ HTTP_PARSER_DIR = $(addprefix $(HTTP_DIR), parser/)
 HTTP_RESPONSE = $(addprefix $(HTTP_RESPONSE_DIR), $(HTTP_RESPONSE_FILES))
 HTTP_RESPONSE_FILES =
 HTTP_RESPONSE_DIR = $(addprefix $(HTTP_DIR), response/)
+
+HTTP_STATIC = $(addprefix $(HTTP_STATIC_DIR), $(HTTP_STATIC_FILES))
+HTTP_STATIC_FILES = FileHandler.cpp
+HTTP_STATIC_DIR = $(addprefix $(HTTP_DIR), files/)
+
 
 #objects
 

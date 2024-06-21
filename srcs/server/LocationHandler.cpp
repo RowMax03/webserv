@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 16:41:37 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:40:23 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/06/21 20:41:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,15 @@ std::string LocationHandler::validRequest(HttpParser &request)
 		}
 	} else {
 		// Static
+		std::string file = FileHandler::readFile(_location.root + request.getPath());
+		// Set Header
+		std::ostringstream oss;
+		oss << "HTTP/1.1 200 OK\r\n"
+			<< "Content-Type: text/html\r\n"
+			<< "Content-Length: " << file.length() << "\r\n"
+			<< "\r\n"
+			<< file;
+		return oss.str();
 		return "HTTP/1.1 418 I'm a teapot\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
 	}
 }
