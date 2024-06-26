@@ -17,6 +17,7 @@
 #include <vector>
 #include "../conf_parser/ConfigParser.hpp"
 #include "LocationHandler.hpp"
+#include "../http/response/Response.hpp"
 
 #define MAX_BUFFER 1024
 
@@ -26,7 +27,7 @@ struct pollfd;
 class Server
 {
 private:
-	Config::Parser _conf;
+	const Config::Parser* _conf;
 	std::map<std::string ,LocationHandler*> _locations;
 	size_t _server_count;
 	std::vector<ServerSocket*> _servers;

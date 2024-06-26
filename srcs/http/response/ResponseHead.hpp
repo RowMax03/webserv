@@ -1,10 +1,14 @@
 #include <ctime>
 #include <sstream>
+#include <string>
+#include <vector>
+#include "../../conf_parser/ServerConfig.hpp"
+#include "../parser/HttpParser.hpp"
 
 class ResponseHead {
 private:
     HttpParser _parser;
-    config _config;
+    const Config::Server* _config;
     std::string _header;
     std::string _statusCode;
     std::string _statusMessage;
@@ -21,8 +25,22 @@ private:
     std::string _wwwAuthenticate;
 
 public:
-    ResponseHead(const Http_parser& _parser, const _config& conf) : _parser(_parser), _config(conf) {
-        init();
+    Config::Location location;
+    std::string fullPathToFile;
+    ResponseHead(const HttpParser& _parser, const Config::Server &conf) : _parser(_parser), _config(&conf) {
+        setStatusCode("");
+        setStatusMessage("");
+        setAllow("");
+        setConnectionType("");
+        setContentLanguage("");
+        setContentLength("");
+        setContentLocation("");
+        setContentType("");
+        setLastModified("");
+        setRetryAfter("");
+        setTransferEncoding("");
+        setWwwAuthenticate("");
+
     }
 
     ResponseHead(const ResponseHead& other) : _parser(other._parser), _config(other._config), _header(other._header) {}
@@ -41,14 +59,18 @@ public:
     void init() {
         setStatusCode("200");
         setStatusMessage("OK");
+
+        std::map <std::string, std::string> headers = _parser.getHeaders();
+        checkLocation();
+        checkRedirect();
         setConnectionType("keep-alive");
-        setContentType("text/html");
+        setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
         setContentLength("0");
-        setAllow("");
+        setAllow(join(location.methods, ", "));
+
         setContentLanguage("");
         setContentLocation("");
         setLastModified("");
-        setLocation("");
         setRetryAfter("");
         setTransferEncoding("");
         setWwwAuthenticate("");
@@ -56,21 +78,18 @@ public:
 
     std::string serialize() {
         std::ostringstream oss;
-
-        if (!getParser().getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
-            oss << getParser().getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
-        if (!getConfig().getServerName().empty())
-            oss << "Server: " << getConfig().getServerName() << "\r\n";
+        if (!_parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
+            oss << _parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
+        if (!_config->server_name.empty())
+            oss << "Server: " << _config->server_name << "\r\n";
         if (!getCurrentDate().empty())
             oss << "Date: " << getCurrentDate() << "\r\n";
         if (!getConnectionType().empty())
             oss << "Connection: " << getConnectionType() << "\r\n";
-        if (getParser().getMethod() == "POST" || getParser().getMethod() == "PUT") {
-            if (!getContentType().empty())
-                oss << "Content-Type: " << getContentType() << "\r\n";
-            if (!getContentLength().empty())
-                oss << "Content-Length: " << getContentLength() << "\r\n";
-        }
+        if (!getContentType().empty())
+            oss << "Content-Type: " << getContentType() << "\r\n";
+        if (!getContentLength().empty())
+            oss << "Content-Length: " << getContentLength() << "\r\n";
         if (!getAllow().empty())
             oss << "Allow: " << getAllow() << "\r\n";
         if (!getContentLanguage().empty())
@@ -92,8 +111,12 @@ public:
         return oss.str();
     }
 
+
+    //utils
+
+
     std::string getCurrentDate() {
-        std::time_t now = std::time(nullptr);
+        std::time_t now = std::time(NULL);
         std::tm* timeinfo = std::gmtime(&now);
 
         char buffer[1000];
@@ -101,6 +124,63 @@ public:
 
         return std::string(buffer);
     }
+
+    void filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it, std::string path){
+        std::ifstream file(fullPath.c_str());
+        if (file.good()) {
+            location = it->second;
+            fullPathToFile = fullPath;
+            setLocation(path);
+            file.close();
+        } else {
+            setStatusCode("404");
+            setStatusMessage("not found");
+        }
+    }
+
+    void checkLocation(){
+        std::string path = _parser.getPath();
+        std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(path);
+        if (it != _config->locations.end()) {
+            std::string fullPath = it->second.root + (!it->second.index.empty() ? it->second.index : "");
+            filecheck(fullPath, it, path);
+        } else {
+            std::string wildcardPath =
+                    '/' + path.substr(0, path.find_last_of("/")) + '*' + path.substr(path.find_last_of("."));
+            it = _config->locations.find(wildcardPath);
+            if (it != _config->locations.end()) {
+                std::string fullPath = it->second.root + path + (!it->second.index.empty() ? it->second.index : "");
+                filecheck(fullPath, it, path);
+            } else {
+                setStatusCode("404");
+                setStatusMessage("not found");
+            }
+        }
+    }
+
+    void checkRedirect(){
+        if (!location.redirect_url.empty())
+        {
+            setStatusCode(std::to_string(location.redirect_status));
+            setLocation(location.redirect_url);
+        }
+    }
+
+    std::string join(const std::vector<std::string>& vec, const char* delim)
+    {
+        std::ostringstream os;
+        for(std::vector<std::string>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+        {
+            if(it != vec.begin())
+                os << delim;
+            os << *it;
+        }
+        return os.str();
+    }
+
+
+
+    //getter / setter
 
     std::string getHeader() const { return _header; }
     void setHeader(const std::string& header) { _header = header; }

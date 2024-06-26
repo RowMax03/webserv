@@ -13,8 +13,8 @@
 #include "Server.hpp"
 
 // * Will be changed to read from Config later *
-// is implmented but have to talk of what to use where and how to is in my mind server name the domain but here it is int but a domain is string in my mind
-Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.servers.size())
+
+Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.servers.size())
 {
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
@@ -48,8 +48,8 @@ void Server::addClient(ClientSocket *client)
 
 void Server::removeClient(size_t i)
 {
-	delete _clients[i];
-	_clients.erase(_clients.begin() + i - 1);
+    delete _clients[i - _server_count];
+    _clients.erase(_clients.begin() + i - _server_count);
 	_pollfds.erase(_pollfds.begin() + i);
 }
 
@@ -93,7 +93,10 @@ void Server::pollin(size_t i)
 		} while (bytes_read == MAX_BUFFER);
 		printf("Received: %s\n", request.c_str());
 		//will be a handler function later
-		matchLocation(_clients[i - _server_count], request);
+        Response response(request, _conf->servers[_clients[i - _server_count]->getServerIndex()]);
+        response.init();
+        _clients[i - _server_count]->setResponse(response.serialize());
+		//matchLocation(_clients[i - _server_count], request);
 		_pollfds[i].events = POLLOUT;
 	}
 	catch (const std::exception &e){
@@ -116,6 +119,8 @@ void Server::pollout(size_t i)
 	}
 }
 
+
+/*
 void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 {
 	try {
@@ -131,9 +136,12 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 				longest_match = location_path;
 			}
 		}
-		if (!longest_match.empty())
-			client->setResponse(_locations[longest_match]->handleRequest(request));
-		else
+		if (!longest_match.empty()) {
+            Response response(request, _conf->servers[client->getServerIndex()]);
+            response.init();
+            client->setResponse(response.serialize());
+        }
+        else
 		{
 			// 404 Not Found, replace with error handler later
 			std::string body = "<html>\n"
@@ -161,3 +169,4 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 		std::cerr << e.what() << std::endl;
 	}
 }
+*/
