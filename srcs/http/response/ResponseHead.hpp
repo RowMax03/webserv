@@ -62,6 +62,8 @@ public:
 
         std::map <std::string, std::string> headers = _parser.getHeaders();
         checkLocation();
+        if(!location.path.empty())
+            return;
         checkRedirect();
         setConnectionType("keep-alive");
         setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
@@ -132,10 +134,8 @@ public:
             fullPathToFile = fullPath;
             setLocation(path);
             file.close();
-        } else {
-            setStatusCode("404");
-            setStatusMessage("not found");
-        }
+        } else
+            return;
     }
 
     void checkLocation(){
@@ -145,15 +145,16 @@ public:
             std::string fullPath = it->second.root + (!it->second.index.empty() ? it->second.index : "");
             filecheck(fullPath, it, path);
         } else {
-            std::string wildcardPath =
-                    '/' + path.substr(0, path.find_last_of("/")) + '*' + path.substr(path.find_last_of("."));
-            it = _config->locations.find(wildcardPath);
-            if (it != _config->locations.end()) {
-                std::string fullPath = it->second.root + path + (!it->second.index.empty() ? it->second.index : "");
-                filecheck(fullPath, it, path);
-            } else {
-                setStatusCode("404");
-                setStatusMessage("not found");
+            size_t lastSlashPos = path.find_last_of("/");
+            size_t lastDotPos = path.find_last_of(".");
+            if (lastSlashPos != std::string::npos && lastDotPos != std::string::npos) {
+                std::string wildcardPath =
+                        '/' + path.substr(0, lastSlashPos) + '*' + path.substr(lastDotPos);
+                it = _config->locations.find(wildcardPath);
+                if (it != _config->locations.end()) {
+                    std::string fullPath = it->second.root + path + (!it->second.index.empty() ? it->second.index : "");
+                    filecheck(fullPath, it, path);
+                }
             }
         }
     }

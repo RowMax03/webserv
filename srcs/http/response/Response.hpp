@@ -1,11 +1,12 @@
+#include <algorithm>
 #include <dirent.h>
 #include <string>
 #include <sstream>
-#include "ResponseBody.hpp"
-#include "ResponseHead.hpp"
+//#include "ResponseBody.hpp"
+//#include "ResponseHead.hpp"
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"
-
+#include "../../error_handler/errorHandler.hpp"
 class Response {
 
 private:
@@ -49,13 +50,16 @@ public:
 
     void init() {
         responseHead.init();
+        ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
+        errorHandler.checkMethod();
+        errorHandler.checkPath();
         if (responseHead.location.autoindex ) {
             std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile);
             responseBody.setBody(directoryListing);
             responseHead.setContentLength(std::to_string(directoryListing.size()));
-            responseHead.setStatusCode("200");
-            responseHead.setStatusMessage("OK");
-        } else if (responseHead.getStatusCode() != "404"){
+            responseHead.setStatusCode("201");
+            responseHead.setStatusMessage("Created");
+        } else if (responseBody.getBody().empty()){
             responseBody.init(responseHead.fullPathToFile);
         }
     }
