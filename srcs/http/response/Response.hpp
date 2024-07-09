@@ -33,13 +33,12 @@ public:
 
     ~Response() {}
 
-    std::string generateDirectoryListing(const std::string& path) {
-        DIR* dir;
+    std::string generateDirectoryListing(const std::string& path, DIR* dir) {
         struct dirent* ent;
         std::ostringstream oss;
         if ((dir = opendir(path.c_str())) != NULL) {
             while ((ent = readdir(dir)) != NULL) {
-                oss << ent->d_name << "\n";
+                oss << "<a href='" << _parser.getPath() << "/" << ent->d_name <<"'>" <<ent->d_name<< "</a>" << "<br>";
             }
             closedir(dir);
         } else {
@@ -51,18 +50,22 @@ public:
 
     void init() {
         responseHead.location_path = path;
+        std::cout << "Location matched: " << responseHead.location_path << std::endl;
+
         responseHead.init();
-        std::cout << "Location matched: " << path << std::endl;
+        std::cout << "Location matched: " << responseHead.fullPathToFile << std::endl;
         ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
         if (errorHandler.isBadRequest() && errorHandler.checkMethod())
             errorHandler.handleErrorCode("403");
         errorHandler.checkPath();
-        if (responseHead.location.autoindex ) {
-            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile);
+        DIR* dir = opendir(responseHead.fullPathToFile.c_str());
+        if (responseHead.location.autoindex && dir != NULL){
+            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
             responseBody.setBody(directoryListing);
             responseHead.setContentLength(std::to_string(directoryListing.size()));
             responseHead.setStatusCode("201");
             responseHead.setStatusMessage("Created");
+            closedir(dir);
         } else if (responseBody.getBody().empty()){
             responseBody.init(responseHead.fullPathToFile);
         }

@@ -133,32 +133,10 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 				longest_match = location_path;
 			}
 		}
-		if (!longest_match.empty()) {
-            std::cout << "Location matched: " << longest_match << std::endl;
-            Response response(request, _conf->servers[client->getServerIndex()], longest_match);
-            response.init();
-            client->setResponse(response.serialize());
-        }
-        else
-		{
-			// 404 Not Found, replace with error handler later
-			std::string body = "<html>\n"
-							   "<head><title>404 Not Found</title></head>\n"
-							   "<body>\n"
-							   "<h1>404 Not Found</h1>\n"
-							   "<p>The requested URL was not found on this server.</p>\n"
-							   "</body>\n"
-							   "</html>\n";
-
-			std::ostringstream oss;
-			oss << "HTTP/1.1 404 Not Found\r\n"
-				<< "Content-Type: text/html\r\n"
-				<< "Content-Length: " << body.length() << "\r\n"
-				<< "\r\n"
-				<< body;
-
-			client->setResponse(oss.str());
-		}
+        std::cout << "Location matched: " << longest_match << std::endl;
+        Response response(request, _conf->servers[client->getServerIndex()], longest_match);
+        response.init();
+        client->setResponse(response.serialize());
 	}
 	catch (const std::exception &e) {
 		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally

@@ -142,7 +142,8 @@ public:
     void checkLocation() {
         std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(location_path);
         if (it != _config->locations.end()) {
-            std::string fullPath = it->second.root + (_parser.getPath() == location_path ? (!it->second.index.empty() ? it->second.index : ""): _parser.getPath());
+            std::string fullPath = it->second.root + (_parser.getPath() == location_path ?   it->second.index  : _parser.getPath());
+            std::cout << "fullpath :"<<fullPath << std::endl;
             filecheck(fullPath, it, _parser.getPath());
         }
     }
