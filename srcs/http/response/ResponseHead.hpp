@@ -31,7 +31,7 @@ public:
     std::string location_path;
     long unsigned int numCLients;
 
-    ResponseHead(const HttpParser& _parser, const Config::Server &conf) : _parser(_parser), _config(&conf) {
+    ResponseHead(const HttpParser& _parser, const Config::Server &conf, std::string location_path, int numClients) : _parser(_parser), _config(&conf), location_path(location_path), numCLients(numClients) {
         setStatusCode("");
         setStatusMessage("");
         setAllow("");
@@ -140,6 +140,7 @@ public:
         oss << delay;
         return oss.str();
     }
+
     std::string formatLastModifiedTime(const std::string& filePath) {
         struct stat fileInfo;
         if (stat(filePath.c_str(), &fileInfo) != 0) {

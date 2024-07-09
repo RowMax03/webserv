@@ -7,6 +7,8 @@
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"
 #include "../../error_handler/errorHandler.hpp"
+#include "../../cgi/CGI.hpp"
+
 class Response {
 
 private:
@@ -14,10 +16,8 @@ private:
     const Config::Server* _config;
     ResponseHead responseHead;
     ResponseBody responseBody;
-    std::string path;
-    long unsigned int numClients;
 public:
-    Response(const HttpParser& parser, const Config::Server &config, std::string path, long unsigned int clients) : _parser(parser), _config(&config), responseHead(parser, config), responseBody(parser, config), path(path), numClients(clients) {}
+    Response(const HttpParser& parser, const Config::Server &config, std::string path, long unsigned int clients) : _parser(parser), _config(&config), responseHead(parser, config, path, clients), responseBody(parser, config) {}
 
     Response(const Response& other) : _parser(other._parser), _config(other._config), responseHead(other.responseHead), responseBody(other.responseBody) {}
 
@@ -56,27 +56,41 @@ public:
     }
 
     void init() {
-        responseHead.location_path = path;
-        responseHead.numCLients = numClients;
-        std::cout << "Location matched: " << responseHead.location_path << std::endl;
-
         responseHead.init();
-        std::cout << "Location matched: " << responseHead.fullPathToFile << std::endl;
         ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
         if (errorHandler.isBadRequest() && errorHandler.checkMethod())
             errorHandler.handleErrorCode("403");
-        errorHandler.checkPath();
-        errorHandler.checkMethod();
-        DIR* dir = opendir(responseHead.fullPathToFile.c_str());
-        if (responseHead.location.autoindex && dir != NULL){
-            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
-            responseBody.setBody(directoryListing);
-            responseHead.setContentLength(std::to_string(directoryListing.size()));
-            responseHead.setStatusCode("201");
-            responseHead.setStatusMessage("Created");
-            closedir(dir);
-        } else if (responseBody.getBody().empty()){
-            responseBody.init(responseHead.fullPathToFile);
+        if (!errorHandler.checkPath())
+            errorHandler.checkMethod();
+        if (_parser.isCgi) {
+            // CGI
+            try {
+                CGI cgi(_parser, responseHead.location.root);
+                responseBody.setBody(cgi.run());
+            }
+            catch (const std::exception &e) {
+                std::cerr << e.what() << std::endl;
+                std::string error = e.what();
+                // Error handling, replace with error handler later
+                if (error == "file not found")
+                    errorHandler.handleErrorCode("404");
+                else if (error == "file not executable")
+                    errorHandler.handleErrorCode("403");
+                else
+                    errorHandler.handleErrorCode("500");
+            }
+        } else {
+            DIR *dir = opendir(responseHead.fullPathToFile.c_str());
+            if (responseHead.location.autoindex && dir != NULL) {
+                std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
+                responseBody.setBody(directoryListing);
+                responseHead.setContentLength(std::to_string(directoryListing.size()));
+                responseHead.setStatusCode("201");
+                responseHead.setStatusMessage("Created");
+                closedir(dir);
+            } else if (responseBody.getBody().empty()) {
+                responseBody.init(responseHead.fullPathToFile);
+            }
         }
     }
 
