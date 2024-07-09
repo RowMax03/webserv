@@ -86,11 +86,10 @@ public:
             handleErrorCode("400");
         }
         std::map<std::string, std::string> headers = _parser.getHeaders();
-        for (const auto& header : headers) {
-            if (header.first.empty() || header.second.empty()) {
+        for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+            if (it->first.empty() || it->second.empty()) {
                 handleErrorCode("400");
                 return true;
-
             }
         }
         return false;

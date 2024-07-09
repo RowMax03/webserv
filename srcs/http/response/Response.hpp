@@ -66,6 +66,7 @@ public:
         if (errorHandler.isBadRequest() && errorHandler.checkMethod())
             errorHandler.handleErrorCode("403");
         errorHandler.checkPath();
+        errorHandler.checkMethod();
         DIR* dir = opendir(responseHead.fullPathToFile.c_str());
         if (responseHead.location.autoindex && dir != NULL){
             std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
