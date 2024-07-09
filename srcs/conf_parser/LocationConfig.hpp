@@ -30,6 +30,18 @@ namespace Config {
             }
             return *this;
         }
+        std::string removeLeadingSlash(const std::string& input) {
+            if (!input.empty() && input[0] == '/') {
+                return input.substr(1);
+            }
+            return input;
+        }
+        std::string removeTrailingSlash(const std::string& input) {
+            if (!input.empty() && input[input.length() - 1] == '/') {
+                return input.substr(0, input.length() - 1);
+            }
+            return input;
+        }
 
         void setConfigValue(const std::vector <std::string> &configValues) {
             std::string key = configValues[0];
@@ -46,12 +58,12 @@ namespace Config {
                     } else
                         throw std::invalid_argument("Invalid redirect values");
                 } else if (key == "root") {
-                    root = configValues[1];
+                    root = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1]));
                 } else if (key == "autoindex") {
                     autoindex = (configValues[1] == "on") ? true : ((configValues[1] == "off") ? false
                                                                 : throw std::invalid_argument("Invalid autoindex value"));
                 } else if (key == "index") {
-                    index = configValues[1];
+                    index = "/" + removeLeadingSlash(configValues[1]);
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
                         methods.push_back(configValues[i]);

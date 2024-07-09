@@ -33,12 +33,19 @@ public:
 
     ~Response() {}
 
+    std::string removeTrailingSlash(const std::string& input) {
+        if (!input.empty() && input[input.length() - 1] == '/') {
+            return input.substr(0, input.length() - 1);
+        }
+        return input;
+    }
+
     std::string generateDirectoryListing(const std::string& path, DIR* dir) {
         struct dirent* ent;
         std::ostringstream oss;
         if ((dir = opendir(path.c_str())) != NULL) {
             while ((ent = readdir(dir)) != NULL) {
-                oss << "<a href='" << _parser.getPath() << "/" << ent->d_name <<"'>" <<ent->d_name<< "</a>" << "<br>";
+                oss << "<a href='" << removeTrailingSlash(_parser.getPath()) << "/" << ent->d_name <<"'>" <<ent->d_name<< "</a>" << "<br>";
             }
             closedir(dir);
         } else {
