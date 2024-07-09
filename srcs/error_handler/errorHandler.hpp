@@ -71,7 +71,7 @@ public:
 
     bool isBadRequest() {
         std::string method = _parser.getMethod();
-        if (method != "GET" && method != "POST" && method != "DELETE") {
+        if (method != "GET" && method != "POST" && method != "DELETE" && method != "PUT") {
             handleErrorCode("400");
             return true;
         }

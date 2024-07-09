@@ -164,6 +164,13 @@ public:
         return std::string(buffer);
     }
 
+    std::string intToString(int value) {
+        std::stringstream ss;
+        ss << value;
+        return ss.str();
+    }
+
+
     void filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it, std::string path){
         std::ifstream file(fullPath.c_str());
         if (file.good()) {
@@ -190,7 +197,7 @@ public:
     void checkRedirect(){
         if (!location.redirect_url.empty())
         {
-            setStatusCode(std::to_string(location.redirect_status));
+            setStatusCode(intToString(location.redirect_status));
             setLocation(location.redirect_url);
         }
     }

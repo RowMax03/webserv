@@ -58,7 +58,7 @@ namespace Config {
                     } else
                         throw std::invalid_argument("Invalid redirect values");
                 } else if (key == "root") {
-                    root = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1]));
+                    root = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "autoindex") {
                     autoindex = (configValues[1] == "on") ? true : ((configValues[1] == "off") ? false
                                                                 : throw std::invalid_argument("Invalid autoindex value"));
@@ -79,7 +79,7 @@ namespace Config {
 
         void print() const {
             std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
-                      << " " << (methods.size() > 1 ? methods[1] : "") << "\n\t\t\tredirect_status=" << redirect_status
+                      << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
                       << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
                       << "\n\t\t\tautoindex=" << autoindex << "\n\t\t\tindex=" << index << std::endl;
         }

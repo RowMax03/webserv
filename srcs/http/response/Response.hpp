@@ -84,7 +84,7 @@ public:
             if (responseHead.location.autoindex && dir != NULL) {
                 std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
                 responseBody.setBody(directoryListing);
-                responseHead.setContentLength(std::to_string(directoryListing.size()));
+                responseHead.setContentLength(intToString(directoryListing.size()));
                 responseHead.setStatusCode("201");
                 responseHead.setStatusMessage("Created");
                 closedir(dir);
@@ -94,7 +94,11 @@ public:
         }
     }
 
-
+    std::string intToString(int value) {
+        std::stringstream ss;
+        ss << value;
+        return ss.str();
+    }
 
     std::string serialize() {
         std::string body = responseBody.serialize();
