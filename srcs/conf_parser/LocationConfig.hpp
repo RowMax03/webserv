@@ -22,13 +22,13 @@
 namespace Config {
     class Location : public confBase {
     public:
-        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), upload_dir("") {}
+        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir("") {}
 
         Location(const Location &other) : confBase(other), path(other.path),
                                           redirect_status(other.redirect_status),
                                           redirect_url(other.redirect_url), root(other.root),
                                           autoindex(other.autoindex), allowCgi(other.allowCgi), index(other.index),
-                                          upload_dir(other.upload_dir) {
+                                          uploadDir(other.uploadDir) {
             methods = other.methods;
         }
 
@@ -42,7 +42,7 @@ namespace Config {
                 autoindex = other.autoindex;
                 allowCgi = other.allowCgi;
                 index = other.index;
-                upload_dir = other.upload_dir;
+                uploadDir = other.uploadDir;
             }
             return *this;
         }
@@ -82,7 +82,7 @@ namespace Config {
                 }else if (key == "index") {
                     index = "/" + removeLeadingSlash(configValues[1]);
                 }else if (key == "upload_dir"){
-                    upload_dir = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
+                    uploadDir = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
                         methods.push_back(configValues[i]);
@@ -100,7 +100,7 @@ namespace Config {
             std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
                       << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
                       << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
-                      << "\n\t\t\tautoindex=" << (autoindex ? "on":"off") << "\n\t\t\tindex=" << index << "\n\t\t\tCgi="<< (allowCgi ? "on" : "off" ) << "\n\t\t\tUpload dir="<< upload_dir << std::endl;
+                      << "\n\t\t\tautoindex=" << (autoindex ? "on":"off") << "\n\t\t\tindex=" << index << "\n\t\t\tCgi="<< (allowCgi ? "on" : "off" ) << "\n\t\t\tUpload dir="<< uploadDir << std::endl;
         }
 
         void validate() {
@@ -114,6 +114,6 @@ namespace Config {
         bool autoindex;
         bool allowCgi;
         std::string index;
-        std::string upload_dir;
+        std::string uploadDir;
     };
 }
