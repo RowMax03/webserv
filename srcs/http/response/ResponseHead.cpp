@@ -15,7 +15,7 @@
 
 ResponseHead::ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path,
                            int numClients) : _parser(_parser), _config(&conf), location_path(location_path),
-                                             numCLients(numClients) {
+                                             numClients(numClients) {
     setStatusCode("");
     setStatusMessage("");
     setAllow("");
@@ -103,7 +103,7 @@ std::string ResponseHead::serialize() {
 //utils
 
 float ResponseHead::calculateServerLoad() {
-    int activeConnections = numCLients;
+    int activeConnections = numClients;
     int maxConnections = 100;
     float load = static_cast<float>(activeConnections) / maxConnections;
     return load;

@@ -45,7 +45,7 @@ public:
     Config::Location location;
     std::string fullPathToFile;
     std::string location_path;
-    long unsigned int numCLients;
+    long unsigned int numClients;
 
     ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path, int numClients);
 
