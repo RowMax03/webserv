@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   LocationConfig.hpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
+/*   Updated: 2024/07/09 23:36:14 by nscheefe         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 // location_config.hpp
 #pragma once
 
@@ -63,11 +76,7 @@ namespace Config {
                 } else if (key == "autoindex") {
                     autoindex = (configValues[1] == "on");
                 } else if (key == "Cgi"){
-                    std::cout << "isCgi: " << configValues[1] << std::endl;
                     allowCgi = (configValues[1] == "on");
-
-                    std::cout << "isCgi: " << allowCgi << std::endl;
-
                 }else if (key == "index") {
                     index = "/" + removeLeadingSlash(configValues[1]);
                 } else if (key == "allow") {

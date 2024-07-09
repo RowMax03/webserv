@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ResponseHead.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
+/*   Updated: 2024/07/09 23:35:37 by nscheefe         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 #include "ResponseHead.hpp"
 
 ResponseHead::ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path,
@@ -43,7 +56,6 @@ void ResponseHead::init() {
     setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
     setContentLength("0");
     setAllow(join(location.methods, ", "));
-
     setContentLanguage("");
     setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
     setLastModified(formatLastModifiedTime(fullPathToFile));

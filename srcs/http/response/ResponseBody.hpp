@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"

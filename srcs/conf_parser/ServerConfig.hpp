@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 23:36:09 by nscheefe          #+#    #+#             */
+/*   Updated: 2024/07/09 23:36:09 by nscheefe         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 // server_conf.hpp
 #pragma once
 
@@ -12,14 +25,15 @@
 namespace Config {
     class Server : public confBase {
     public:
-        Server() : listen(0), server_name(""), server_names_hash_bucket_size(0), client_max_body_size("") {
+        Server() : listen(0), server_name(""), server_names_hash_bucket_size(0), client_max_body_size(""), server_timeout(120) {
             locations = std::map<std::string, Location>();
         }
 
         Server(const Server &other) : confBase(other), listen(other.listen), server_name(other.server_name),
                                       server_names_hash_bucket_size(other.server_names_hash_bucket_size),
                                       client_max_body_size(other.client_max_body_size),
-                                      error_pages(other.error_pages), locations(other.locations) {}
+                                      error_pages(other.error_pages), locations(other.locations),
+                                      server_timeout(other.server_timeout) {}
 
         Server &operator=(const Server &other) {
             if (this != &other) {
@@ -29,6 +43,7 @@ namespace Config {
                 client_max_body_size = other.client_max_body_size;
                 locations = other.locations;
                 error_pages = other.error_pages;
+                server_timeout = other.server_timeout;
             }
             return *this;
         }
@@ -48,14 +63,16 @@ namespace Config {
                     server_names_hash_bucket_size = atoi(configValues[1].c_str());
                     if (server_names_hash_bucket_size == 0)
                         throw std::invalid_argument("invalid server names hash bucket size");
-                } else if (key == "error_page") {
+                }  else if(key == "keepalive_timeout") {
+                    server_timeout = atoi(configValues[1].c_str());
+                }else if (key == "error_page") {
                     int status = atoi(configValues[1].c_str());
                     if (status == 0 || status > 600)//@todo max http code nach kucken
                         throw std::invalid_argument("invalid error code specified for error page");
                     if (!configValues[2].empty()) {
                         std::string url = configValues[2];
                         error_pages[status] = ErrorPage(status, url);
-                    } else
+                    }else
                         throw std::invalid_argument("no page for error code specified in error page conf");
                 } else {
                     throw std::invalid_argument("Invalid key");
@@ -69,7 +86,7 @@ namespace Config {
         void print() const {
             std::cout << "Server Config: \n\t server_name=" << server_name << "\n\t listen=" << listen
                       << "\n\t server_names_hash_bucket_size=" << server_names_hash_bucket_size
-                      << "\n\t client_max_body_size=" << client_max_body_size << std::endl;
+                      << "\n\t client_max_body_size=" << client_max_body_size << "\n\t Timeout="<< server_timeout << std::endl;
 
             std::cout << "\n\tError Page Configs:" << std::endl;
             for (std::map<int, ErrorPage>::const_iterator it = error_pages.begin();
@@ -105,5 +122,6 @@ namespace Config {
         std::string client_max_body_size;
         std::map<int, ErrorPage> error_pages;
         std::map <std::string, Location> locations;
+        int server_timeout;
     };
 }

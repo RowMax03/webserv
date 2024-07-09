@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   errorHandler.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
+/*   Updated: 2024/07/09 23:36:03 by nscheefe         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 #include "../http/response/ResponseHead.hpp"
 #include "../http/response/ResponseBody.hpp"
 #include "../http/parser/HttpParser.hpp"
