@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:41:13 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/09 20:46:35 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,18 +85,30 @@ void Server::pollin(size_t i)
 {
 	int bytes_read;
 	std::string request;
+	bool headers_complete = false;
 	try {
 		do {
 			char buffer[MAX_BUFFER] = {0};
-			bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER);
+			bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1); // Leave space for null terminator
 			request += buffer;
-		} while (bytes_read == MAX_BUFFER);
+			// Check if the end of the headers section has been reached
+			if (request.find("\r\n\r\n") != std::string::npos) {
+				headers_complete = true;
+				// If handling POST, also check for content length and read until the body is complete
+			}
+		} while (bytes_read == MAX_BUFFER - 1 && !headers_complete);
+
+		if (!headers_complete) {
+			// Optionally, handle the case where the headers are not complete
+			// This could involve waiting a bit longer, or logging an incomplete request error
+		}
+
 		printf("Received: %s\n", request.c_str());
-		//will be a handler function later
+		// Handler function
 		matchLocation(_clients[i - _server_count], request);
 		_pollfds[i].events = POLLOUT;
 	}
-	catch (const std::exception &e){
+	catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		removeClient(i);
 	}
