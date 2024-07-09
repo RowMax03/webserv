@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"
 
@@ -28,6 +29,8 @@ public:
     Config::Location location;
     std::string fullPathToFile;
     std::string location_path;
+    long unsigned int numCLients;
+
     ResponseHead(const HttpParser& _parser, const Config::Server &conf) : _parser(_parser), _config(&conf) {
         setStatusCode("");
         setStatusMessage("");
@@ -63,8 +66,6 @@ public:
 
         std::map <std::string, std::string> headers = _parser.getHeaders();
         checkLocation();
-        if(!location.path.empty())
-            return;
         checkRedirect();
         setConnectionType("keep-alive");
         setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
@@ -72,9 +73,9 @@ public:
         setAllow(join(location.methods, ", "));
 
         setContentLanguage("");
-        setContentLocation("");
-        setLastModified("");
-        setRetryAfter("");
+        setContentLocation((_parser.getPath() == location_path ?  location.index  : _parser.getPath()));
+        setLastModified(formatLastModifiedTime(fullPathToFile));
+        setRetryAfter(calculateRetryAfter());
         setTransferEncoding("");
         setWwwAuthenticate("");
     }
@@ -117,6 +118,40 @@ public:
 
     //utils
 
+    float calculateServerLoad() {
+        int activeConnections = numCLients;
+        int maxConnections = 100;
+        float load = static_cast<float>(activeConnections) / maxConnections;
+        return load;
+    }
+
+    std::string calculateRetryAfter() {
+        float load = calculateServerLoad();
+        int delay;
+
+        if (load > 0.75) {
+            delay = 120;
+        } else if (load > 0.5) {
+            delay = 60;
+        } else {
+            delay = 30;
+        }
+        std::ostringstream oss;
+        oss << delay;
+        return oss.str();
+    }
+    std::string formatLastModifiedTime(const std::string& filePath) {
+        struct stat fileInfo;
+        if (stat(filePath.c_str(), &fileInfo) != 0) {
+            return "";
+        }
+
+        char dateStr[80];
+        std::tm* ptm = std::localtime(&fileInfo.st_mtime);
+        std::strftime(dateStr, sizeof(dateStr), "%a, %d %b %Y %H:%M:%S GMT", ptm);
+
+        return std::string(dateStr);
+    }
 
     std::string getCurrentDate() {
         std::time_t now = std::time(NULL);

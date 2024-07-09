@@ -15,9 +15,9 @@ private:
     ResponseHead responseHead;
     ResponseBody responseBody;
     std::string path;
-
+    long unsigned int numClients;
 public:
-    Response(const HttpParser& parser, const Config::Server &config, std::string path) : _parser(parser), _config(&config), responseHead(parser, config), responseBody(parser, config), path(path) {}
+    Response(const HttpParser& parser, const Config::Server &config, std::string path, long unsigned int clients) : _parser(parser), _config(&config), responseHead(parser, config), responseBody(parser, config), path(path), numClients(clients) {}
 
     Response(const Response& other) : _parser(other._parser), _config(other._config), responseHead(other.responseHead), responseBody(other.responseBody) {}
 
@@ -57,6 +57,7 @@ public:
 
     void init() {
         responseHead.location_path = path;
+        responseHead.numCLients = numClients;
         std::cout << "Location matched: " << responseHead.location_path << std::endl;
 
         responseHead.init();

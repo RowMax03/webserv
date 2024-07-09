@@ -134,7 +134,7 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 			}
 		}
         std::cout << "Location matched: " << longest_match << std::endl;
-        Response response(request, _conf->servers[client->getServerIndex()], longest_match);
+        Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
         response.init();
         client->setResponse(response.serialize());
 	}
