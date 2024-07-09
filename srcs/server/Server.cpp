@@ -93,10 +93,7 @@ void Server::pollin(size_t i)
 		} while (bytes_read == MAX_BUFFER);
 		printf("Received: %s\n", request.c_str());
 		//will be a handler function later
-        Response response(request, _conf->servers[_clients[i - _server_count]->getServerIndex()]);
-        response.init();
-        _clients[i - _server_count]->setResponse(response.serialize());
-		//matchLocation(_clients[i - _server_count], request);
+		matchLocation(_clients[i - _server_count], request);
 		_pollfds[i].events = POLLOUT;
 	}
 	catch (const std::exception &e){
@@ -120,7 +117,7 @@ void Server::pollout(size_t i)
 }
 
 
-/*
+
 void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 {
 	try {
@@ -137,7 +134,8 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 			}
 		}
 		if (!longest_match.empty()) {
-            Response response(request, _conf->servers[client->getServerIndex()]);
+            std::cout << "Location matched: " << longest_match << std::endl;
+            Response response(request, _conf->servers[client->getServerIndex()], longest_match);
             response.init();
             client->setResponse(response.serialize());
         }
@@ -169,4 +167,3 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 		std::cerr << e.what() << std::endl;
 	}
 }
-*/

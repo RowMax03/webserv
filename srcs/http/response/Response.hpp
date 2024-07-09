@@ -14,9 +14,10 @@ private:
     const Config::Server* _config;
     ResponseHead responseHead;
     ResponseBody responseBody;
+    std::string path;
 
 public:
-    Response(const HttpParser& parser, const Config::Server &config) : _parser(parser), _config(&config), responseHead(parser, config), responseBody(parser, config) {}
+    Response(const HttpParser& parser, const Config::Server &config, std::string path) : _parser(parser), _config(&config), responseHead(parser, config), responseBody(parser, config), path(path) {}
 
     Response(const Response& other) : _parser(other._parser), _config(other._config), responseHead(other.responseHead), responseBody(other.responseBody) {}
 
@@ -49,7 +50,9 @@ public:
     }
 
     void init() {
+        responseHead.location_path = path;
         responseHead.init();
+        std::cout << "Location matched: " << path << std::endl;
         ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
         if (errorHandler.isBadRequest() && errorHandler.checkMethod())
             errorHandler.handleErrorCode("403");

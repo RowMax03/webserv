@@ -27,6 +27,7 @@ private:
 public:
     Config::Location location;
     std::string fullPathToFile;
+    std::string location_path;
     ResponseHead(const HttpParser& _parser, const Config::Server &conf) : _parser(_parser), _config(&conf) {
         setStatusCode("");
         setStatusMessage("");
@@ -138,24 +139,11 @@ public:
             return;
     }
 
-    void checkLocation(){
-        std::string path = _parser.getPath();
-        std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(path);
+    void checkLocation() {
+        std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(location_path);
         if (it != _config->locations.end()) {
-            std::string fullPath = it->second.root + (!it->second.index.empty() ? it->second.index : "");
-            filecheck(fullPath, it, path);
-        } else {
-            size_t lastSlashPos = path.find_last_of("/");
-            size_t lastDotPos = path.find_last_of(".");
-            if (lastSlashPos != std::string::npos && lastDotPos != std::string::npos) {
-                std::string wildcardPath =
-                        '/' + path.substr(0, lastSlashPos) + '*' + path.substr(lastDotPos);
-                it = _config->locations.find(wildcardPath);
-                if (it != _config->locations.end()) {
-                    std::string fullPath = it->second.root + path + (!it->second.index.empty() ? it->second.index : "");
-                    filecheck(fullPath, it, path);
-                }
-            }
+            std::string fullPath = it->second.root + (_parser.getPath() == location_path ? (!it->second.index.empty() ? it->second.index : ""): _parser.getPath());
+            filecheck(fullPath, it, _parser.getPath());
         }
     }
 
