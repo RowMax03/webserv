@@ -2,46 +2,27 @@
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"
 #include "../files/FileHandler.hpp"
+
 class ResponseBody {
 private:
     HttpParser _parser;
-    const Config::Server* _config;
+    const Config::Server *_config;
     std::string body;
 
 public:
-    ResponseBody(const HttpParser& parser, const Config::Server &config) : _parser(parser), _config(&config) {
-        setBody("");
-    }
+    ResponseBody(const HttpParser &parser, const Config::Server &config);
 
-    ResponseBody(const ResponseBody& other) : _parser(other._parser), _config(other._config), body(other.body) {}
+    ResponseBody(const ResponseBody &other);
 
-    ResponseBody& operator=(const ResponseBody& other) {
-        if (this != &other) {
-            _parser = other._parser;
-            _config = other._config;
-            body = other.body;
-        }
-        return *this;
-    }
+    ResponseBody &operator=(const ResponseBody &other);
 
-    ~ResponseBody() {}
+    ~ResponseBody();
 
-    void init(std::string path) {
-        FileHandler fileHandler;
-        setBody(fileHandler.readFile(path));
-    }
+    void init(std::string path);
 
-    std::string serialize() {
-        if(!body.empty())
-            return body;
-        return "";
-    }
+    std::string serialize();
 
-    const std::string& getBody() const {
-        return body;
-    }
+    const std::string &getBody() const;
 
-    void setBody(const std::string& body) {
-        this->body = body;
-    }
+    void setBody(const std::string &body);
 };
