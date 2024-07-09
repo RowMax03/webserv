@@ -16,6 +16,7 @@
 #include <sstream>
 #include <map>
 #include <cstdlib>
+#include <vector>
 
 class HttpParser
 {

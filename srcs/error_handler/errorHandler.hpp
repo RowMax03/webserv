@@ -55,23 +55,55 @@ public:
             setErrorPage();
         } else {
             _responseHead.setStatusCode("418");
-            _responseHead.setStatusMessage("Uknown Server Error");
+            _responseHead.setStatusMessage("im a tea pot");
         }
     }
 
-    void checkMethod(){
+    bool checkMethod(){
         std::string requestMethod = _parser.getMethod();
         if(std::find(_responseHead.location.methods.begin(), _responseHead.location.methods.end(), requestMethod) == _responseHead.location.methods.end())
         {
             handleErrorCode("405");
+            return true;
         }
+        return false;
     }
 
-    void checkPath(){
+    bool isBadRequest() {
+        std::string method = _parser.getMethod();
+        if (method != "GET" && method != "POST" && method != "DELETE") {
+            handleErrorCode("400");
+            return true;
+        }
+        std::string version = _parser.getVersion();
+        if (version != "HTTP/1.1" && version != "HTTP/1.0") {
+            handleErrorCode("400");
+            return true;
+
+        }
+        std::string uri = _parser.getUrl();
+        if (uri.empty() || uri[0] != '/') {
+            handleErrorCode("400");
+        }
+        std::map<std::string, std::string> headers = _parser.getHeaders();
+        for (const auto& header : headers) {
+            if (header.first.empty() || header.second.empty()) {
+                handleErrorCode("400");
+                return true;
+
+            }
+        }
+        return false;
+    }
+
+    bool checkPath(){
         if(_responseHead.fullPathToFile.empty())
         {
             handleErrorCode("404");
+            return true;
+
         }
+        return false;
     }
 
     void setErrorPage(){

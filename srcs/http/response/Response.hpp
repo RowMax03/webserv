@@ -51,7 +51,8 @@ public:
     void init() {
         responseHead.init();
         ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
-        errorHandler.checkMethod();
+        if (errorHandler.isBadRequest() && errorHandler.checkMethod())
+            errorHandler.handleErrorCode("403");
         errorHandler.checkPath();
         if (responseHead.location.autoindex ) {
             std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile);
