@@ -57,7 +57,7 @@ namespace Config {
                     client_max_body_size = configValues[1];
                 } else if (key == "listen") {
                     listen = atoi(configValues[1].c_str());
-                    if (listen == 0 || listen > 56000) //@todo max port nochmal nachkucken
+                    if (listen == 0 || listen > 65535)
                         throw std::invalid_argument("invalid port specified");
                 } else if (key == "server_names_hash_bucket_size") {
                     server_names_hash_bucket_size = atoi(configValues[1].c_str());
@@ -67,7 +67,7 @@ namespace Config {
                     server_timeout = atoi(configValues[1].c_str());
                 }else if (key == "error_page") {
                     int status = atoi(configValues[1].c_str());
-                    if (status == 0 || status > 600)//@todo max http code nach kucken
+                    if (status == 0 || status > 512)
                         throw std::invalid_argument("invalid error code specified for error page");
                     if (!configValues[2].empty()) {
                         std::string url = configValues[2];
