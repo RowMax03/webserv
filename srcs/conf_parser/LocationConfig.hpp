@@ -1,3 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   LocationConfig.hpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
+/*   Updated: 2024/07/09 23:36:14 by nscheefe         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 // location_config.hpp
 #pragma once
 
@@ -9,12 +22,13 @@
 namespace Config {
     class Location : public confBase {
     public:
-        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), index("") {}
+        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir("") {}
 
         Location(const Location &other) : confBase(other), path(other.path),
                                           redirect_status(other.redirect_status),
                                           redirect_url(other.redirect_url), root(other.root),
-                                          autoindex(other.autoindex), index(other.index) {
+                                          autoindex(other.autoindex), allowCgi(other.allowCgi), index(other.index),
+                                          uploadDir(other.uploadDir) {
             methods = other.methods;
         }
 
@@ -26,9 +40,23 @@ namespace Config {
                 redirect_url = other.redirect_url;
                 root = other.root;
                 autoindex = other.autoindex;
+                allowCgi = other.allowCgi;
                 index = other.index;
+                uploadDir = other.uploadDir;
             }
             return *this;
+        }
+        std::string removeLeadingSlash(const std::string& input) {
+            if (!input.empty() && input[0] == '/') {
+                return input.substr(1);
+            }
+            return input;
+        }
+        std::string removeTrailingSlash(const std::string& input) {
+            if (!input.empty() && input[input.length() - 1] == '/') {
+                return input.substr(0, input.length() - 1);
+            }
+            return input;
         }
 
         void setConfigValue(const std::vector <std::string> &configValues) {
@@ -46,17 +74,20 @@ namespace Config {
                     } else
                         throw std::invalid_argument("Invalid redirect values");
                 } else if (key == "root") {
-                    root = configValues[1];
+                    root = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "autoindex") {
-                    autoindex = (configValues[1] == "on") ? true : ((configValues[1] == "off") ? false
-                                                                : throw std::invalid_argument("Invalid autoindex value"));
-                } else if (key == "index") {
-                    index = configValues[1];
+                    autoindex = (configValues[1] == "on");
+                } else if (key == "Cgi"){
+                    allowCgi = (configValues[1] == "on");
+                }else if (key == "index") {
+                    index = "/" + removeLeadingSlash(configValues[1]);
+                }else if (key == "upload_dir"){
+                    uploadDir = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
                         methods.push_back(configValues[i]);
                     }
-                } else {
+                } else{
                     throw std::invalid_argument("Invalid key");
                 }
             } else
@@ -67,9 +98,9 @@ namespace Config {
 
         void print() const {
             std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
-                      << " " << (methods.size() > 1 ? methods[1] : "") << "\n\t\t\tredirect_status=" << redirect_status
+                      << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
                       << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
-                      << "\n\t\t\tautoindex=" << autoindex << "\n\t\t\tindex=" << index << std::endl;
+                      << "\n\t\t\tautoindex=" << (autoindex ? "on":"off") << "\n\t\t\tindex=" << index << "\n\t\t\tCgi="<< (allowCgi ? "on" : "off" ) << "\n\t\t\tUpload dir="<< uploadDir << std::endl;
         }
 
         void validate() {
@@ -81,6 +112,8 @@ namespace Config {
         std::string redirect_url;
         std::string root;
         bool autoindex;
+        bool allowCgi;
         std::string index;
+        std::string uploadDir;
     };
 }

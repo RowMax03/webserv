@@ -6,15 +6,15 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/24 12:42:32 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 01:29:15 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
 // * Will be changed to read from Config later *
-// is implmented but have to talk of what to use where and how to is in my mind server name the domain but here it is int but a domain is string in my mind
-Server::Server(const Config::Parser &conf) : _conf(conf) , _server_count(conf.servers.size())
+
+Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.servers.size())
 {
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
@@ -56,10 +56,10 @@ void Server::removeClient(size_t i)
 int Server::Start()
 {
 	while (1) {
-		if (poll(_pollfds.data(), _pollfds.size(), 100000) < 0) {
-			perror("poll failed");
+		// poll with timeout of 10 seconds
+		int ret = poll(_pollfds.data(), _pollfds.size(), 10000);
+		if (ret < 0)
 			throw std::runtime_error("poll failed");
-		}
 		for (size_t i = 0; i < _pollfds.size(); i++) {
 			if (_pollfds[i].revents == 0) {
 				continue;
@@ -83,23 +83,67 @@ int Server::Start()
 
 void Server::pollin(size_t i)
 {
-	int bytes_read;
 	std::string request;
 	try {
-		do {
-			char buffer[MAX_BUFFER] = {0};
-			bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER);
-			request += buffer;
-		} while (bytes_read == MAX_BUFFER);
+		std::string headers = readHeaders(i);
+		int content_length = 0;
+		request = headers;
+		if (isPostRequest(headers, content_length))
+			request += readBody(i, content_length);
 		printf("Received: %s\n", request.c_str());
-		//will be a handler function later
+		// Handler function
 		matchLocation(_clients[i - _server_count], request);
 		_pollfds[i].events = POLLOUT;
 	}
-	catch (const std::exception &e){
+	catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		removeClient(i);
 	}
+}
+
+// Function to read headers and return the headers as a string
+std::string Server::readHeaders(size_t i) {
+	std::string headers;
+	do {
+		char buffer[MAX_BUFFER] = {0}; // Move buffer declaration inside the loop to clear it each iteration
+		int bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1); // Leave space for null terminator
+
+		if (bytes_read > 0) {
+			headers.append(buffer, bytes_read); // Append only the bytes that were actually read
+		} else if (bytes_read < 0)
+			continue; // EAGAIN or EWOULDBLOCK
+		// No need for sleep here; handle the condition properly.
+	} while (headers.find("\r\n\r\n") == std::string::npos);
+	return headers;
+}
+
+// Function to determine if the request is a POST request and to extract content length
+bool Server::isPostRequest(const std::string& headers, int& content_length) {
+	if (headers.find("POST") != std::string::npos) {
+		size_t pos = headers.find("Content-Length:");
+		if (pos != std::string::npos) {
+			std::string content_length_str = headers.substr(pos + 16, headers.find("\r\n", pos) - (pos + 16));
+			content_length = std::stoi(content_length_str);
+			size_t endOfHeaders = headers.find("\r\n\r\n");
+			int alreadyRead = headers.length() - (endOfHeaders + 4); // +4 for the length of "\r\n\r\n"
+			content_length -= alreadyRead; // Adjust content_length
+			return true;
+		}
+	}
+	return false;
+}
+
+// Function to read the body of the request
+std::string Server::readBody(size_t i, int content_length) {
+	std::string body;
+	char buffer[MAX_BUFFER] = {0};
+	int bytes_read = 0;
+	while (content_length > 0) {
+		bytes_read = _clients[i - _server_count]->read_socket(buffer, std::min(content_length, MAX_BUFFER - 1));
+		body += buffer;
+		content_length -= bytes_read;
+	}
+	return body;
 }
 
 void Server::pollout(size_t i)
@@ -116,6 +160,8 @@ void Server::pollout(size_t i)
 	}
 }
 
+
+
 void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 {
 	try {
@@ -131,28 +177,10 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 				longest_match = location_path;
 			}
 		}
-		if (!longest_match.empty())
-			client->setResponse(_locations[longest_match]->handleRequest(request));
-		else
-		{
-			// 404 Not Found, replace with error handler later
-			std::string body = "<html>\n"
-							   "<head><title>404 Not Found</title></head>\n"
-							   "<body>\n"
-							   "<h1>404 Not Found</h1>\n"
-							   "<p>The requested URL was not found on this server.</p>\n"
-							   "</body>\n"
-							   "</html>\n";
-
-			std::ostringstream oss;
-			oss << "HTTP/1.1 404 Not Found\r\n"
-				<< "Content-Type: text/html\r\n"
-				<< "Content-Length: " << body.length() << "\r\n"
-				<< "\r\n"
-				<< body;
-
-			client->setResponse(oss.str());
-		}
+        std::cout << "Location matched: " << longest_match << std::endl;
+        Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
+        response.init();
+        client->setResponse(response.serialize());
 	}
 	catch (const std::exception &e) {
 		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally

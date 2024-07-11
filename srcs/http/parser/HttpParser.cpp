@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:47:21 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/09 20:51:11 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ void HttpParser::parse(const std::string& raw) {
 bool HttpParser::checkRequestLine() {
 	if (_method.empty() || _url.empty() || _version.empty())
 		return false;
-	else if (_method != "GET" && _method != "DELETE" && _method != "POST")
-		return false;
+	//else if (_method != "GET" && _method != "DELETE" && _method != "POST")
+	//	return false;
 	else if (_version != "HTTP/1.0" && _version != "HTTP/1.1")
 		return false;
 	else if (_url.empty() || _url[0] != '/')
