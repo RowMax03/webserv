@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/11 17:47:35 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/11 18:37:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,9 @@ bool Server::isPostRequest(const std::string& headers, int& content_length) {
 		if (pos != std::string::npos) {
 			std::string content_length_str = headers.substr(pos + 16, headers.find("\r\n", pos) - (pos + 16));
 			content_length = std::stoi(content_length_str);
+			size_t endOfHeaders = headers.find("\r\n\r\n");
+			int alreadyRead = headers.length() - (endOfHeaders + 4); // +4 for the length of "\r\n\r\n"
+			content_length -= alreadyRead; // Adjust content_length
 			return true;
 		}
 	}
