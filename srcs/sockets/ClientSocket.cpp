@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:31:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/09 23:39:56 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,11 @@ int	ClientSocket::read_socket(void *buf, size_t len)
 		// Other end closed connection
 		throw std::runtime_error("Connection closed by peer");
 	} else if (n == -1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		{
+			std::cout << strerror(errno) << std::endl;
+			return -1;
+		}
 		// An error occurred
 		throw std::runtime_error("Read error: " + std::string(strerror(errno)));
 	}

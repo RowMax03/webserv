@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/09 20:46:35 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/11 17:47:35 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,10 @@ void Server::removeClient(size_t i)
 int Server::Start()
 {
 	while (1) {
-		if (poll(_pollfds.data(), _pollfds.size(), 100000) < 0) {
-			perror("poll failed");
+		// poll with timeout of 10 seconds
+		int ret = poll(_pollfds.data(), _pollfds.size(), 10000);
+		if (ret < 0)
 			throw std::runtime_error("poll failed");
-		}
 		for (size_t i = 0; i < _pollfds.size(); i++) {
 			if (_pollfds[i].revents == 0) {
 				continue;
@@ -83,26 +83,13 @@ int Server::Start()
 
 void Server::pollin(size_t i)
 {
-	int bytes_read;
 	std::string request;
-	bool headers_complete = false;
 	try {
-		do {
-			char buffer[MAX_BUFFER] = {0};
-			bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1); // Leave space for null terminator
-			request += buffer;
-			// Check if the end of the headers section has been reached
-			if (request.find("\r\n\r\n") != std::string::npos) {
-				headers_complete = true;
-				// If handling POST, also check for content length and read until the body is complete
-			}
-		} while (bytes_read == MAX_BUFFER - 1 && !headers_complete);
-
-		if (!headers_complete) {
-			// Optionally, handle the case where the headers are not complete
-			// This could involve waiting a bit longer, or logging an incomplete request error
-		}
-
+		std::string headers = readHeaders(i);
+		int content_length = 0;
+		request = headers;
+		if (isPostRequest(headers, content_length))
+			request += readBody(i, content_length);
 		printf("Received: %s\n", request.c_str());
 		// Handler function
 		matchLocation(_clients[i - _server_count], request);
@@ -112,6 +99,48 @@ void Server::pollin(size_t i)
 		std::cerr << e.what() << std::endl;
 		removeClient(i);
 	}
+}
+
+// Function to read headers and return the headers as a string
+std::string Server::readHeaders(size_t i) {
+	std::string headers;
+	do {
+		char buffer[MAX_BUFFER] = {0}; // Move buffer declaration inside the loop to clear it each iteration
+		int bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1); // Leave space for null terminator
+
+		if (bytes_read > 0) {
+			headers.append(buffer, bytes_read); // Append only the bytes that were actually read
+		} else if (bytes_read < 0)
+			continue; // EAGAIN or EWOULDBLOCK
+		// No need for sleep here; handle the condition properly.
+	} while (headers.find("\r\n\r\n") == std::string::npos);
+	return headers;
+}
+
+// Function to determine if the request is a POST request and to extract content length
+bool Server::isPostRequest(const std::string& headers, int& content_length) {
+	if (headers.find("POST") != std::string::npos) {
+		size_t pos = headers.find("Content-Length:");
+		if (pos != std::string::npos) {
+			std::string content_length_str = headers.substr(pos + 16, headers.find("\r\n", pos) - (pos + 16));
+			content_length = std::stoi(content_length_str);
+			return true;
+		}
+	}
+	return false;
+}
+
+// Function to read the body of the request
+std::string Server::readBody(size_t i, int content_length) {
+	std::string body;
+	char buffer[MAX_BUFFER] = {0};
+	int bytes_read = 0;
+	while (content_length > 0) {
+		bytes_read = _clients[i - _server_count]->read_socket(buffer, std::min(content_length, MAX_BUFFER - 1));
+		body += buffer;
+		content_length -= bytes_read;
+	}
+	return body;
 }
 
 void Server::pollout(size_t i)

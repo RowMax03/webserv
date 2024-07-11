@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:31:52 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/11 17:55:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <chrono>
 
 class ASocket
 {
