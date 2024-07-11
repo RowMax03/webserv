@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/11 18:37:42 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 01:29:15 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,8 @@ void Server::addClient(ClientSocket *client)
 
 void Server::removeClient(size_t i)
 {
-    delete _clients[i - _server_count];
-    _clients.erase(_clients.begin() + i - _server_count);
+	delete _clients[i - _server_count];
+	_clients.erase(_clients.begin() + i - _server_count);
 	_pollfds.erase(_pollfds.begin() + i);
 }
 
