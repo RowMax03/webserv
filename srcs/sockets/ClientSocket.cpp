@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/09 23:39:56 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 18:07:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,18 @@
 
 ClientSocket::ClientSocket(int fd, int server_index) : _server_index(server_index)
 {
+	content_length = 0;
+	pending_request = false;
 	this->socket_fd = fd;
 }
 
 int	ClientSocket::read_socket(void *buf, size_t len)
 {
-	ssize_t n = read(this->socket_fd, buf, len);
+	ssize_t n = recv(this->socket_fd, buf, len, O_NONBLOCK);
 	if (n == 0) {
 		// Other end closed connection
 		throw std::runtime_error("Connection closed by peer");
 	} else if (n == -1) {
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-		{
-			std::cout << strerror(errno) << std::endl;
-			return -1;
-		}
-		// An error occurred
 		throw std::runtime_error("Read error: " + std::string(strerror(errno)));
 	}
 	return n;
@@ -48,5 +44,7 @@ void	ClientSocket::write_socket(const void *buf, size_t len)
 
 // Getters and setters
 const std::string &ClientSocket::getResponse() const {return _response;}
+std::string &ClientSocket::getRequest() {return _request;}
 int ClientSocket::getServerIndex() const {return _server_index;}
 void ClientSocket::setResponse(const std::string &response) {_response = response;}
+void ClientSocket::setRequest(const std::string &request) {_request += request;}
