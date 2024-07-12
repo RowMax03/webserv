@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 18:07:36 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 18:33:44 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class ClientSocket : public ASocket
 		int getServerIndex() const;
 		void setResponse(const std::string &response);
 		void setRequest(const std::string &request);
+		void clearRequest();
 		ClientSocket(int fd, int server_index);
 		int read_socket(void *buf, size_t len);
 		void write_socket(const void *buf, size_t len);

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 18:30:16 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 18:34:48 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	std::string& request = client->getRequest();
-	std::cout << "Request: " << request << std::endl;
 	try {
 		if (request.find("\r\n\r\n") == std::string::npos) {
 			// Headers not fully received, attempt to read more
@@ -116,7 +115,6 @@ void Server::pollin(size_t i)
 		removeClient(i);
 		return;
 	}
-	std::cout << "Headers: " << request << std::endl;
 	// At this point, headers are fully received, check for body
 	int &content_length = client->content_length;
 	if (isPostRequest(request, content_length)) {
@@ -143,6 +141,7 @@ void Server::pollin(size_t i)
 		matchLocation(client, request);
 		_pollfds[i].events = POLLOUT;
 		// Reset for next request
+		client->clearRequest();
 		client->pending_request = false;
 	}
 }
