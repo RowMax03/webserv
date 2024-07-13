@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/13 17:20:38 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/13 20:13:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,10 +194,11 @@ bool Server::isPostRequest(const std::string& headers, int& content_length) {
 
 void Server::pollout(size_t i)
 {
-	const char *response = _clients[i - _server_count]->getResponse().c_str();
+	const std::string &response = _clients[i - _server_count]->getResponse();
+	const char *raw = response.c_str();
 	try {
-		_clients[i - _server_count]->write_socket(response, strlen(response)); //will be a sender function later
-		printf("Sending: %s\n", response);
+		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
+		std::cout << "Sending: " << response << std::endl;
 		_pollfds[i].events = POLLIN;
 	}
 	catch (const std::exception &e){

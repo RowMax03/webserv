@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/13 18:17:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/13 20:04:15 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,33 @@ void Response::init() {
             responseHead.setStatusMessage("Created");
             closedir(dir);
         } else if (responseBody.getBody().empty()) {
+			setMimeType(responseHead.fullPathToFile);
             responseBody.init(responseHead.fullPathToFile);
         }
     }
+}
+
+void Response::setMimeType(const std::string& filePath) {
+	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
+	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+	// Example MIME types, extend this map according to your needs
+    std::map<std::string, std::string> mimeTypes;
+    mimeTypes["html"] = "text/html";
+    mimeTypes["txt"] = "text/plain";
+    mimeTypes["js"] = "application/javascript";
+    mimeTypes["css"] = "text/css";
+    mimeTypes["jpg"] = "image/jpeg";
+    mimeTypes["png"] = "image/png";
+    mimeTypes["gif"] = "image/gif";
+    mimeTypes["pdf"] = "application/pdf";
+
+    std::map<std::string, std::string>::iterator it = mimeTypes.find(extension);
+    if (it != mimeTypes.end()) {
+        responseHead.setContentType(it->second);
+    }
+	else
+    	responseHead.setContentType("application/octet-stream");// Default MIME type for unknown/other files
 }
 
 std::string Response::intToString(int value) {

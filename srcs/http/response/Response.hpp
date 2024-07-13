@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <string>
 #include <sstream>
+#include <map>
 //#include "ResponseBody.hpp"
 //#include "ResponseHead.hpp"
 #include "../../conf_parser/ServerConfig.hpp"
@@ -36,6 +37,8 @@ public:
     void init();
 
     std::string intToString(int value);
+
+void setMimeType(const std::string& filePath);
 
     std::string serialize();
 };
