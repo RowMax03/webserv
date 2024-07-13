@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:15 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/13 18:17:12 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,16 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
 void Response::init() {
     responseHead.init();
     ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
+	if (_parser.getMethod() == "POST" && _parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
+		try {
+		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
+		UploadHandler uploadHandler(responseHead.location.uploadDir , _parser.getHeaders()["Content-Type"], _parser.getBody());
+		}
+		catch (const std::exception &e) {
+			std::cerr << e.what() << std::endl;
+			errorHandler.handleErrorCode("500");
+		}
+	}
     if (errorHandler.isBadRequest() && errorHandler.checkMethod())
         errorHandler.handleErrorCode("403");
     if (!errorHandler.checkPath())

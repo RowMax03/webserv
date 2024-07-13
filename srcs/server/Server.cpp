@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 18:34:48 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/13 17:20:38 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,8 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	std::string& request = client->getRequest();
+	int &content_length = client->content_length;
+	std::cout << "Content length: " << content_length << std::endl;
 	try {
 		if (request.find("\r\n\r\n") == std::string::npos) {
 			// Headers not fully received, attempt to read more
@@ -109,16 +111,11 @@ void Server::pollin(size_t i)
 			// Check again if headers are fully received
 			if (request.find("\r\n\r\n") == std::string::npos)
 				return; // Still waiting for complete headers
+			else if (!isPostRequest(request, content_length))
+				client->pending_request = false;
 		}
-	} catch (const std::exception &e) {
-		std::cerr << e.what() << std::endl;
-		removeClient(i);
-		return;
-	}
-	// At this point, headers are fully received, check for body
-	int &content_length = client->content_length;
-	if (isPostRequest(request, content_length)) {
-		try {
+		else if (content_length > 0)
+		{
 			// Only read body if content_length > 0 and body not yet read
 			if (content_length > 0)
 				request += readBody(i, content_length);
@@ -126,24 +123,29 @@ void Server::pollin(size_t i)
 				client->pending_request = false;
 			else
 				return; // Still waiting for complete body
-		} catch (const std::exception &e) {
-			std::cerr << e.what() << std::endl;
-			removeClient(i);
-			return;
 		}
+		if (content_length == 0)
+			client->pending_request = false;
+	} catch (const std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		removeClient(i);
+		return;
 	}
-	else
-		client->pending_request = false;
+
 	// Check if the entire request (headers + body) has been received
 	if (!client->pending_request) {
 		printf("Received: %s\n", request.c_str());
+		std::cout << "Length of request: " << request.length() << std::endl;
 		// Handler function
 		matchLocation(client, request);
 		_pollfds[i].events = POLLOUT;
 		// Reset for next request
+		client->content_length = 0;
 		client->clearRequest();
 		client->pending_request = false;
+		return;
 	}
+	std::cout << "Request not fully received" << std::endl;
 }
 
 // Function to read headers and return the headers as a string
@@ -153,7 +155,7 @@ std::string Server::readHeaders(size_t i) {
 	int bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1);
 	std::cout << "Bytes read: " << bytes_read << std::endl;
 	if (bytes_read > 0) {
-		//buffer[bytes_read] = '\0'; // Null-terminate the buffer
+		buffer[bytes_read] = '\0'; // Null-terminate the buffer
 		headers.append(buffer, bytes_read); // Append only the bytes that were actually read
 	}
 	return headers;
@@ -165,7 +167,7 @@ std::string Server::readBody(size_t i, int &content_length) {
 	char buffer[MAX_BUFFER] = {0};
 	int bytes_read = 0;
 	bytes_read = _clients[i - _server_count]->read_socket(buffer, std::min(content_length, MAX_BUFFER - 1));
-	body += buffer;
+	body = buffer;
 	content_length -= bytes_read;
 	return body;
 }

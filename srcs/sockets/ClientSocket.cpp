@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 18:33:55 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/12 21:55:39 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,3 +49,4 @@ int ClientSocket::getServerIndex() const {return _server_index;}
 void ClientSocket::setResponse(const std::string &response) {_response = response;}
 void ClientSocket::setRequest(const std::string &request) {_request += request;}
 void ClientSocket::clearRequest() {_request.clear();}
+

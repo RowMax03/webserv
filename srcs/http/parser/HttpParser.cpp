@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/09 20:51:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/13 15:10:33 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void HttpParser::parse(const std::string& raw) {
 		std::vector<char> _bodyChars(_contentLength);
 		request.read(&_bodyChars[0], _contentLength);
 		if (request.gcount() != _contentLength)
-			throw std::runtime_error("Body length does not match Content-Length header");
+			throw std::runtime_error("Body length does not match Content-Length header body length: " + std::to_string(request.gcount()) + " vs " + std::to_string(_contentLength));
 		_body.assign(_bodyChars.begin(), _bodyChars.end());
 	}
 	parseUrl();

@@ -10,6 +10,8 @@
 #include "../parser/HttpParser.hpp"
 #include "../../error_handler/errorHandler.hpp"
 #include "../../cgi/CGI.hpp"
+#include "../../http/files/FileHandler.hpp"
+#include "../../http/files/UploadHandler.hpp"
 
 class Response {
 
