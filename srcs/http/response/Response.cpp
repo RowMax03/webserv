@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/15 17:58:36 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 19:12:47 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,17 +111,39 @@ void Response::setMimeType(const std::string& filePath) {
 	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-	// Example MIME types, extend this map according to your needs
     std::map<std::string, std::string> mimeTypes;
     mimeTypes["html"] = "text/html";
     mimeTypes["txt"] = "text/plain";
     mimeTypes["js"] = "application/javascript";
-	mimeTypes["svg"] = "image/svg+xml";
+    mimeTypes["svg"] = "image/svg+xml";
     mimeTypes["css"] = "text/css";
     mimeTypes["jpg"] = "image/jpeg";
     mimeTypes["png"] = "image/png";
     mimeTypes["gif"] = "image/gif";
     mimeTypes["pdf"] = "application/pdf";
+    mimeTypes["json"] = "application/json";
+    mimeTypes["xml"] = "application/xml";
+    mimeTypes["csv"] = "text/csv";
+    mimeTypes["mp3"] = "audio/mpeg";
+    mimeTypes["wav"] = "audio/wav";
+    mimeTypes["mp4"] = "video/mp4";
+    mimeTypes["avi"] = "video/x-msvideo";
+    mimeTypes["mov"] = "video/quicktime";
+    mimeTypes["doc"] = "application/msword";
+    mimeTypes["docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    mimeTypes["ppt"] = "application/vnd.ms-powerpoint";
+    mimeTypes["pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    mimeTypes["xls"] = "application/vnd.ms-excel";
+    mimeTypes["xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    mimeTypes["ico"] = "image/x-icon";
+    mimeTypes["webp"] = "image/webp";
+    mimeTypes["otf"] = "font/otf";
+    mimeTypes["ttf"] = "font/ttf";
+    mimeTypes["woff"] = "font/woff";
+    mimeTypes["woff2"] = "font/woff2";
+    mimeTypes["eot"] = "application/vnd.ms-fontobject";
+    mimeTypes["sfnt"] = "font/sfnt";
+
 
     std::map<std::string, std::string>::iterator it = mimeTypes.find(extension);
     if (it != mimeTypes.end()) {
