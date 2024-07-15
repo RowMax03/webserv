@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/13 20:13:00 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:27:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,15 @@ void Server::removeClient(size_t i)
 	_pollfds.erase(_pollfds.begin() + i);
 }
 
+void Server::timeoutCheck(size_t i)
+{
+	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = now - _clients[i - _server_count]->getLastRequest();
+	if (elapsed_seconds.count() > 10) { //timeout of 10 seconds
+		removeClient(i);
+	}
+}
+
 bool Server::checkRevents(size_t i)
 {
 	bool ret = true;
@@ -92,6 +101,8 @@ int Server::Start()
 				std::cout << "Client ready to write at i: " << i << std::endl;
 				pollout(i);
 			}
+			if (i > _server_count - 1)
+				timeoutCheck(i);
 		}
 	}
 	return 0;
@@ -100,6 +111,7 @@ int Server::Start()
 void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
+	client->setLastRequest();
 	std::string& request = client->getRequest();
 	int &content_length = client->content_length;
 	std::cout << "Content length: " << content_length << std::endl;
@@ -194,6 +206,7 @@ bool Server::isPostRequest(const std::string& headers, int& content_length) {
 
 void Server::pollout(size_t i)
 {
+	_clients[i - _server_count]->setLastRequest();
 	const std::string &response = _clients[i - _server_count]->getResponse();
 	const char *raw = response.c_str();
 	try {

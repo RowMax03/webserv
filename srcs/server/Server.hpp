@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 16:46:23 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:19:35 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ private:
 	std::vector<ClientSocket*> _clients;
 	std::vector<pollfd> _pollfds;
 	void removeClient(size_t i);
+	void timeoutCheck(size_t i);
 	bool checkRevents(size_t i);
 	void addClient(ClientSocket *client);
 	//pollin fuctions

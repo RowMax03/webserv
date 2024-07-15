@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/12 18:33:44 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:21:51 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class ASocket
 class ClientSocket : public ASocket
 {
 	private:
+		std::chrono::time_point<std::chrono::system_clock> _last_request;
 		std::string _request;
 		std::string _response;
 		const int _server_index;
@@ -47,6 +48,8 @@ class ClientSocket : public ASocket
 		std::string &getRequest();
 		const std::string &getResponse() const;
 		int getServerIndex() const;
+		std::chrono::time_point<std::chrono::system_clock> getLastRequest();
+		void setLastRequest();
 		void setResponse(const std::string &response);
 		void setRequest(const std::string &request);
 		void clearRequest();
