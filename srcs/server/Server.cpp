@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 17:49:25 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:54:10 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,12 +164,10 @@ void Server::pollin(size_t i)
 std::string Server::readHeaders(size_t i) {
 	std::string headers;
 	std::vector<char> buffer(MAX_BUFFER); // Use std::vector for automatic memory management
-	int bytes_read = _clients[i - _server_count]->read_socket(buffer.data(), MAX_BUFFER - 1);
+	int bytes_read = _clients[i - _server_count]->read_socket(buffer.data(), MAX_BUFFER);
 	std::cout << "Bytes read: " << bytes_read << std::endl;
-	if (bytes_read > 0) {
-		buffer[bytes_read] = '\0'; // Null-terminate the buffer
-		headers.append(buffer, bytes_read); // Append only the bytes that were actually read
-	}
+	if (bytes_read > 0)
+		headers.append(buffer.data(), bytes_read); // Append only the bytes that were actually read
 	return headers;
 }
 
