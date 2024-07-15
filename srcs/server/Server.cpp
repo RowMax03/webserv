@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 17:27:43 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:49:25 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,8 +163,8 @@ void Server::pollin(size_t i)
 // Function to read headers and return the headers as a string
 std::string Server::readHeaders(size_t i) {
 	std::string headers;
-	char buffer[MAX_BUFFER] = {0}; // Move buffer declaration inside the loop to clear it each iteration
-	int bytes_read = _clients[i - _server_count]->read_socket(buffer, MAX_BUFFER - 1);
+	std::vector<char> buffer(MAX_BUFFER); // Use std::vector for automatic memory management
+	int bytes_read = _clients[i - _server_count]->read_socket(buffer.data(), MAX_BUFFER - 1);
 	std::cout << "Bytes read: " << bytes_read << std::endl;
 	if (bytes_read > 0) {
 		buffer[bytes_read] = '\0'; // Null-terminate the buffer
@@ -176,10 +176,11 @@ std::string Server::readHeaders(size_t i) {
 // Function to read the body of the request
 std::string Server::readBody(size_t i, int &content_length) {
 	std::string body;
-	char buffer[MAX_BUFFER] = {0};
+	int buffersize = std::min(content_length, 10000000);
+	std::vector<char> buffer(buffersize); // Use std::vector for automatic memory management
 	int bytes_read = 0;
-	bytes_read = _clients[i - _server_count]->read_socket(buffer, std::min(content_length, MAX_BUFFER - 1));
-	body = buffer;
+	bytes_read = _clients[i - _server_count]->read_socket(buffer.data(), buffersize); // Use .data() to get the underlying array
+	body.assign(buffer.begin(), buffer.begin() + bytes_read); // Assign the read bytes to body
 	content_length -= bytes_read;
 	return body;
 }
