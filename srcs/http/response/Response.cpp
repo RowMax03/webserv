@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/13 20:04:15 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:58:36 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,7 @@ void Response::setMimeType(const std::string& filePath) {
     mimeTypes["html"] = "text/html";
     mimeTypes["txt"] = "text/plain";
     mimeTypes["js"] = "application/javascript";
+	mimeTypes["svg"] = "image/svg+xml";
     mimeTypes["css"] = "text/css";
     mimeTypes["jpg"] = "image/jpeg";
     mimeTypes["png"] = "image/png";
