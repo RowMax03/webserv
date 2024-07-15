@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/13 15:10:33 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 18:30:18 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,7 @@ std::vector<std::string> HttpParser::toCgiEnv() const {
 }
 
 void HttpParser::parseUrl() {
+	_url = decodeUrl(_url);
 	std::size_t queryPos = _url.find('?');
 	_path = _url.substr(0, queryPos);
 	if (queryPos != std::string::npos) {
@@ -106,6 +107,28 @@ void HttpParser::parseUrl() {
 			_scriptName = _scriptName.substr(0, _pathInfoPos);
 		}
 	}
+}
+
+std::string HttpParser::decodeUrl(const std::string& url) {
+	std::string decoded;
+	for (std::size_t i = 0; i < url.size(); ++i) {
+		if (url[i] == '%' && i + 2 < url.size()) {
+			int value;
+			std::istringstream hex(url.substr(i + 1, 2));
+			hex >> std::hex >> value;
+			if (!hex.fail()) {
+				decoded += static_cast<char>(value);
+				i += 2;
+			}
+			else {
+				decoded += url[i];
+			}
+		}
+		else {
+			decoded += url[i];
+		}
+	}
+	return decoded;
 }
 
 std::string HttpParser::getMethod() const { return _method; }

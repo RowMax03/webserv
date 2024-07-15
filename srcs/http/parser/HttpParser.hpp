@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:54:47 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/15 18:28:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ private:
 	int _contentLength;
 	std::string trim(const std::string& str);
 	void parseUrl();
+	std::string decodeUrl(const std::string& url);
 	void parse(const std::string& raw);
 	bool checkRequestLine();
 
