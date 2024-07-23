@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 18:28:42 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:12:39 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <map>
 #include <cstdlib>
 #include <vector>
+#include "../../conf_parser/ConfigParser.hpp"
 
 class HttpParser
 {
@@ -30,6 +31,7 @@ private:
 	std::string _queryString;
 	std::string _version;
 	std::string _body;
+	const Config::Server *_server;
 	int _contentLength;
 	std::string trim(const std::string& str);
 	void parseUrl();
@@ -38,7 +40,7 @@ private:
 	bool checkRequestLine();
 
 public:
-	HttpParser(const std::string& request);
+	HttpParser(const std::string& request, const Config::Server &server);
 	~HttpParser();
 	std::vector<std::string> toCgiEnv() const;
 	std::string getMethod() const;

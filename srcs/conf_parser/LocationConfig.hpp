@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/16 15:21:22 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:15:47 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,13 @@
 namespace Config {
     class Location : public confBase {
     public:
-        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir("") {}
+        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir(""), client_max_body_size(-1) {}
 
         Location(const Location &other) : confBase(other), path(other.path),
                                           redirect_status(other.redirect_status),
                                           redirect_url(other.redirect_url), root(other.root),
                                           autoindex(other.autoindex), allowCgi(other.allowCgi), index(other.index),
-                                          uploadDir(other.uploadDir) {
+                                          uploadDir(other.uploadDir), client_max_body_size(other.client_max_body_size) {
             methods = other.methods;
         }
 

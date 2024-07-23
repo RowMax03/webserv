@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 18:31:55 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 15:08:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ void Server::pollout(size_t i)
 void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 {
 	try {
-		HttpParser request(raw_request);
+		HttpParser request(raw_request, _conf->servers[client->getServerIndex()]);
 		std::string path = request.getPath();
 
 		std::string longest_match;

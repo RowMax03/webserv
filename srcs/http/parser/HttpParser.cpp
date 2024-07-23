@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 18:30:18 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:12:48 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const std::string& request) : _contentLength(0), isCgi(false) {
+HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false){
 	parse(request);
 }
 
@@ -96,11 +96,19 @@ void HttpParser::parseUrl() {
 	if (queryPos != std::string::npos) {
 		_queryString = _url.substr(queryPos + 1);
 	}
-	// maybe change this to a regex or config variable later
-	std::size_t scriptPos = _path.find("/cgi-bin/");
-	if (scriptPos != std::string::npos) {
-		isCgi = true;
-		_scriptName = _path.substr(scriptPos);
+	std::size_t fext = _path.find_last_of('.');
+	std::string extension;
+	if (fext != std::string::npos) {
+		extension = _path.substr(fext + 1);
+	}
+	for (std::vector<std::string>::const_iterator it = _server->cgi.begin(); it != _server->cgi.end(); ++it) {
+		if (*it == extension) {
+			isCgi = true;
+			break;
+		}
+	}
+	if (isCgi) {
+		_scriptName = _path.substr(_path.find_last_of('/') + 1);
 		std::size_t _pathInfoPos = _scriptName.find('/');
 		if (_pathInfoPos != std::string::npos) {
 			_pathInfo = _scriptName.substr(_pathInfoPos);
