@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:09 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:09 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/16 12:00:12 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,13 @@ namespace Config {
                         error_pages[status] = ErrorPage(status, url);
                     }else
                         throw std::invalid_argument("no page for error code specified in error page conf");
-                } else {
+                }
+				else if (key == "cgi") {
+					for (size_t i = 1; i < configValues.size(); i++) {
+						cgi.push_back(configValues[i]);
+					}
+				}
+				 else {
                     throw std::invalid_argument("Invalid key");
                 }
             } else
@@ -99,6 +105,10 @@ namespace Config {
                  it != locations.end(); ++it) {
                 it->second.print();
             }
+			std::cout << "\n\tCGI Configs:" << std::endl;
+			for (size_t i = 0; i < cgi.size(); i++) {
+				std::cout << "\t\t" << cgi[i] << std::endl;
+			}
         }
 
         void validate() {
@@ -122,6 +132,7 @@ namespace Config {
         std::string client_max_body_size;
         std::map<int, ErrorPage> error_pages;
         std::map <std::string, Location> locations;
+		std::vector<std::string> cgi;
         int server_timeout;
     };
 }

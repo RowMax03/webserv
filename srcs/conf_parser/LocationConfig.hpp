@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:14 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/16 15:21:22 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,11 @@ namespace Config {
                     autoindex = (configValues[1] == "on");
                 } else if (key == "Cgi"){
                     allowCgi = (configValues[1] == "on");
-                }else if (key == "index") {
+                } else if (key == "client_max_body_size") {
+					client_max_body_size = std::atoi(configValues[1].c_str());
+				} else if (key == "index") {
                     index = "/" + removeLeadingSlash(configValues[1]);
-                }else if (key == "upload_dir"){
+                } else if (key == "upload_dir"){
                     uploadDir = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
@@ -95,7 +97,6 @@ namespace Config {
         }
 
         ~Location() {}
-
         void print() const {
             std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
                       << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
@@ -108,6 +109,7 @@ namespace Config {
 
         std::string path;
         std::vector <std::string> methods;
+        int client_max_body_size;
         int redirect_status;
         std::string redirect_url;
         std::string root;
