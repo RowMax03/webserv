@@ -10,7 +10,6 @@
 #include "../parser/HttpParser.hpp"
 #include "../../error_handler/errorHandler.hpp"
 #include "../../cgi/CGI.hpp"
-
 class Response {
 
 private:

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:41 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:32:33 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ private:
     std::string _retryAfter;
     std::string _transferEncoding;
     std::string _wwwAuthenticate;
+	std::string _cookie;
 
 public:
     Config::Location location;
@@ -138,4 +139,8 @@ public:
     std::string getWwwAuthenticate() const;
 
     void setWwwAuthenticate(const std::string &wwwAuthenticate);
+
+	void setCookie(const std::string &cookie);
+	std::string getCookie();
+
 };

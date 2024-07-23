@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:37 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/23 20:21:39 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ void ResponseHead::init() {
 
     std::map <std::string, std::string> headers = _parser.getHeaders();
     checkLocation();
-    checkRedirect();
     setConnectionType("keep-alive");
     setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
     setContentLength("0");
@@ -62,6 +61,8 @@ void ResponseHead::init() {
     setRetryAfter(calculateRetryAfter());
     setTransferEncoding("");
     setWwwAuthenticate("");
+	    checkRedirect();
+
 }
 
 std::string ResponseHead::serialize() {
@@ -94,6 +95,10 @@ std::string ResponseHead::serialize() {
         oss << "Transfer-Encoding: " << getTransferEncoding() << "\r\n";
     if (!getWwwAuthenticate().empty())
         oss << "WWW-Authenticate: " << getWwwAuthenticate() << "\r\n";
+	if (!getCookie().empty()){
+		std::cout << "Debug - Cookie value: " << getCookie() << std::endl;
+		oss << "Set-Cookie: " << getCookie() << "\r\n";
+	}
     oss << "\r\n";
 
     return oss.str();
@@ -255,3 +260,12 @@ void ResponseHead::setTransferEncoding(const std::string &transferEncoding) { _t
 std::string ResponseHead::getWwwAuthenticate() const { return _wwwAuthenticate; }
 
 void ResponseHead::setWwwAuthenticate(const std::string &wwwAuthenticate) { _wwwAuthenticate = wwwAuthenticate; }
+
+void ResponseHead::setCookie(const std::string &cookie) {
+	_cookie = cookie;
+}
+
+std::string ResponseHead::getCookie() {
+	return _cookie;
+}
+

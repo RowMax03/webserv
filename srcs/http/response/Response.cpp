@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:15 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/23 20:39:26 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void Response::init() {
     ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
     if (errorHandler.isBadRequest() && errorHandler.checkMethod())
         errorHandler.handleErrorCode("403");
-    if (!errorHandler.checkPath())
+    if (!errorHandler.checkPath() && responseHead.location.redirect_url.empty())
         errorHandler.checkMethod();
     if (_parser.isCgi) {
         // CGI
@@ -81,7 +81,7 @@ void Response::init() {
             else
                 errorHandler.handleErrorCode("500");
         }
-    } else {
+    } else { //@todo : content length against client max bodz size in location !!!!!!
         DIR *dir = opendir(responseHead.fullPathToFile.c_str());
         if (responseHead.location.autoindex && dir != NULL) {
             std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);

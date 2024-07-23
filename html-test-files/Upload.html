@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>File Upload Form</title>
+</head>
+<body>
+	<h2>Upload File</h2>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<label for="file">Choose file to upload:</label>
+		<input type="file" id="file" name="file"><br><br>
+		<button type="submit">Upload File</button>
+	</form>
+	<h2>login form</h2>
+	<form action="/login" method="post">
+		<label for="name">User name:</label>
+		<input type="text" id="name" name="name"><br>
+		<label for="password">password:</label>
+		<input type="password" id="password" name="password"><br>
+		<button type="submit">Login</button>
+	</form>
+</body>
+</html>
