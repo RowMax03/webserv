@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 16:12:48 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:43:33 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void HttpParser::parseUrl() {
 	}
 	for (std::vector<std::string>::const_iterator it = _server->cgi.begin(); it != _server->cgi.end(); ++it) {
 		if (*it == extension) {
+			std::cout << "CGI extension found: " << extension << std::endl;
 			isCgi = true;
 			break;
 		}

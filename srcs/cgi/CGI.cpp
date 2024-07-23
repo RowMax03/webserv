@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 18:55:42 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 18:50:15 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
  * @param request The HttpParser object that contains the request
  * @param config The Config object that containts the cgi config
  */
-CGI::CGI(const HttpParser &request, const std::string &documentRoot) : _documentRoot(documentRoot), _request(request) {
+CGI::CGI(const HttpParser &request, const std::string &document) : _document(document), _request(request) {
 	toCharArr(request.toCgiEnv());
 }
 
@@ -62,9 +62,10 @@ void CGI::deleteEnv() {
  */
 std::string CGI::run() {
 	//document root, get from config later
-	//std::string documentRoot = "/Users/max/Projekte/webserv";
+	//std::string document = "/Users/max/Projekte/webserv";
 	// check if we can open the file
-	checkRigths(_documentRoot + _request.getPath());
+	std::cout << "CGI PATH: " << _document<< std::endl;
+	checkRigths(_document);
 	int inputPipe[2];
 	int outputPipe[2];
 
@@ -76,7 +77,7 @@ std::string CGI::run() {
 	if (pid == -1)
 		throw std::runtime_error("fork failed");
 	if (pid == 0)
-		handleChildProcess(inputPipe, outputPipe, _documentRoot);
+		handleChildProcess(inputPipe, outputPipe, _document);
 	else
 		return handleParentProcess(inputPipe, outputPipe, pid);
 	return "";
@@ -101,15 +102,14 @@ void CGI::checkRigths(const std::string &path) {
  *
  * @param inputPipe The input pipe
  * @param outputPipe The output pipe
- * @param documentRoot The document root from the config
+ * @param document The document root from the config
  */
-void CGI::handleChildProcess(int inputPipe[2], int outputPipe[2], const std::string& documentRoot) {
+void CGI::handleChildProcess(int inputPipe[2], int outputPipe[2], const std::string& document) {
 	close(inputPipe[1]); // close write end of input pipe
 	close(outputPipe[0]); // close read end of output pipe
 	dup2(inputPipe[0], STDIN_FILENO);
 	dup2(outputPipe[1], STDOUT_FILENO);
-	std::string path = documentRoot + _request.getPath();
-	char* argv[] = { const_cast<char*>(path.c_str()), NULL };
+	char* argv[] = { const_cast<char*>(document.c_str()), NULL };
 	execve(argv[0], argv, _env); // execve never returns if successful
 	std::string err = "execve failed";
 	write(outputPipe[1], err.c_str(), err.size());
@@ -128,6 +128,7 @@ std::string CGI::handleParentProcess(int inputPipe[2], int outputPipe[2], pid_t 
 	close(inputPipe[0]); // close read end of input pipe
 	close(outputPipe[1]); // close write end of output pipe
 	write(inputPipe[1], _request.getBody().c_str(), _request.getBody().size());
+	std::cout << "BODY: " << _request.getBody() << std::endl;
 	close(inputPipe[1]);
 	char buffer[1024];
 	ssize_t bytesRead;

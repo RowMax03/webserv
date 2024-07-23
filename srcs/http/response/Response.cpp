@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/15 19:12:47 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 17:05:03 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void Response::init() {
     if (_parser.isCgi) {
         // CGI
         try {
-            CGI cgi(_parser, responseHead.location.root);
+            CGI cgi(_parser, responseHead.fullPathToFile);
             responseBody.setBody(cgi.run());
         }
         catch (const std::exception &e) {

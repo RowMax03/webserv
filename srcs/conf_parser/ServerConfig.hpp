@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:09 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/16 12:00:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 16:56:57 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 namespace Config {
     class Server : public confBase {
     public:
-        Server() : listen(0), server_name(""), server_names_hash_bucket_size(0), client_max_body_size(""), server_timeout(120) {
+        Server() : listen(0), server_name(""), server_names_hash_bucket_size(0), client_max_body_size(""), server_timeout(120){
             locations = std::map<std::string, Location>();
         }
 
@@ -33,7 +33,7 @@ namespace Config {
                                       server_names_hash_bucket_size(other.server_names_hash_bucket_size),
                                       client_max_body_size(other.client_max_body_size),
                                       error_pages(other.error_pages), locations(other.locations),
-                                      server_timeout(other.server_timeout) {}
+                                      server_timeout(other.server_timeout), cgi(other.cgi) {}
 
         Server &operator=(const Server &other) {
             if (this != &other) {
@@ -44,6 +44,7 @@ namespace Config {
                 locations = other.locations;
                 error_pages = other.error_pages;
                 server_timeout = other.server_timeout;
+				cgi = other.cgi;
             }
             return *this;
         }
@@ -76,8 +77,10 @@ namespace Config {
                         throw std::invalid_argument("no page for error code specified in error page conf");
                 }
 				else if (key == "cgi") {
+					std::cout << "CGI: " << configValues[1] << std::endl;
 					for (size_t i = 1; i < configValues.size(); i++) {
 						cgi.push_back(configValues[i]);
+						std::cout << "CGI Parse Loop: " << cgi[0] << std::endl;
 					}
 				}
 				 else {
@@ -132,7 +135,7 @@ namespace Config {
         std::string client_max_body_size;
         std::map<int, ErrorPage> error_pages;
         std::map <std::string, Location> locations;
-		std::vector<std::string> cgi;
         int server_timeout;
+		std::vector<std::string> cgi;
     };
 }

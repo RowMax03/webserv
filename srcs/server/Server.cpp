@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 15:08:00 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/23 18:43:14 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,9 +237,25 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 			}
 		}
         std::cout << "Location matched: " << longest_match << std::endl;
-        Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
-        response.init();
-        client->setResponse(response.serialize());
+		std::string output;
+		if (request.isCgi)
+		{
+			try 
+			{
+				output = CGI(request, _conf->servers[client->getServerIndex()].locations.find(longest_match)->second.root + request.getScriptName()).run();
+			}
+			catch (std::exception &e)
+			{
+				std::cerr << e.what() << std::endl;
+				output = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
+			}
+		}
+		else{
+    		Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
+        	response.init();
+			output = response.serialize();
+		}
+        client->setResponse(output);
 	}
 	catch (const std::exception &e) {
 		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally
