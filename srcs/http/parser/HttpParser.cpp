@@ -3,35 +3,37 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 16:43:33 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/24 16:11:04 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false){
-	parse(request);
+HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false) {
+	_request = new std::istringstream(request);
+	parse();
 }
 
-HttpParser::~HttpParser() {}
+HttpParser::~HttpParser() {
+	delete _request;
+}
 
 // parse the raw request into the method, url, version, headers, and body
-void HttpParser::parse(const std::string& raw) {
-	std::istringstream request(raw);
+void HttpParser::parse() {
 	std::string line;
 
-	std::getline(request, line);
+	std::getline(*_request, line);
 	if (!line.empty() && line.back() == '\r')
 		line.pop_back();
 	std::istringstream firstLine(line);
 	firstLine >> _method >> _url >> _version;
 	if (firstLine.fail() || !firstLine.eof() || !checkRequestLine())
 		throw std::runtime_error("Invalid request line");
-	while (std::getline(request, line) && line != "\r") {
+	while (std::getline(*_request, line) && line != "\r") {
 		std::istringstream headerLine(line);
 		std::string key;
 		std::getline(headerLine, key, ':');
@@ -41,15 +43,20 @@ void HttpParser::parse(const std::string& raw) {
 			throw std::runtime_error("Invalid header line");
 		_headers[key] = trim(value);
 	}
-	if (_headers.find("Content-Length") != _headers.end()) {
-		_contentLength = std::stoi(_headers["Content-Length"]);
-		std::vector<char> _bodyChars(_contentLength);
-		request.read(&_bodyChars[0], _contentLength);
-		if (request.gcount() != _contentLength)
-			throw std::runtime_error("Body length does not match Content-Length header body length: " + std::to_string(request.gcount()) + " vs " + std::to_string(_contentLength));
-		_body.assign(_bodyChars.begin(), _bodyChars.end());
-	}
+
 	parseUrl();
+}
+
+void HttpParser::parseBody() {
+	// parse the body of the request
+	if (_headers.find("Content-Length") != _headers.end()) {
+	_contentLength = std::stoi(_headers["Content-Length"]);
+	std::vector<char> _bodyChars(_contentLength);
+	_request->read(&_bodyChars[0], _contentLength);
+	if (_request->gcount() != _contentLength)
+		throw std::runtime_error("Body length does not match Content-Length header body length: " + std::to_string(_request->gcount()) + " vs " + std::to_string(_contentLength));
+	_body.assign(_bodyChars.begin(), _bodyChars.end());
+	}
 }
 
 // change to also throw an exception instead of just returning false later
