@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 17:21:51 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/25 16:43:16 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <cstring>
 #include <cstdio>
 #include <chrono>
+
+#include "../http/parser/HttpParser.hpp"
 
 class ASocket
 {
@@ -43,6 +45,7 @@ class ClientSocket : public ASocket
 		std::string _response;
 		const int _server_index;
 	public:
+		HttpParser *_parser;
 		int content_length;
 		bool pending_request;
 		std::string &getRequest();
@@ -54,6 +57,8 @@ class ClientSocket : public ASocket
 		void setRequest(const std::string &request);
 		void clearRequest();
 		ClientSocket(int fd, int server_index);
+		ClientSocket(const ClientSocket &other);
+		ClientSocket &operator=(const ClientSocket &other);
 		int read_socket(void *buf, size_t len);
 		void write_socket(const void *buf, size_t len);
 };

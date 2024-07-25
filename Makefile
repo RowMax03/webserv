@@ -1,7 +1,7 @@
 NAME = webserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror #-std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -g #-std=c++98
 
 SRCS = $(SRC) $(SERVER) $(SOCKET) $(CGI) $(CONFPARSER) $(HTTP_PARSER) $(HTTP_RESPONSE) $(HTTP_STATIC)
 

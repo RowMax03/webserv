@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/24 16:11:10 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:39:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,16 +31,18 @@ private:
 	std::string _queryString;
 	std::string _version;
 	std::string _body;
-	std::istringstream *_request;
+	std::istringstream _request;
 	const Config::Server *_server;
 	int _contentLength;
 	std::string trim(const std::string& str);
 	void parseUrl();
 	std::string decodeUrl(const std::string& url);
-	void parse();
 	bool checkRequestLine();
+	void parse();
 
 public:
+	HttpParser(const HttpParser &other);
+	HttpParser &operator=(const HttpParser &other);
 	HttpParser(const std::string& request, const Config::Server &server);
 	~HttpParser();
 	void parseBody();
@@ -52,5 +54,6 @@ public:
 	std::string getPath() const;
 	std::string getScriptName() const;
 	std::map<std::string, std::string> getHeaders() const;
+	void updateRequest(const std::string& request);
 	bool isCgi;
 };

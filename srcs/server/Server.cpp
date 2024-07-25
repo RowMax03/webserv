@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 18:43:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:57:49 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ void Server::timeoutCheck(size_t i)
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = now - _clients[i - _server_count]->getLastRequest();
 	if (elapsed_seconds.count() > 10) { //timeout of 10 seconds
+		std::cout << "Client timed out at: " << elapsed_seconds.count() << std::endl;
 		removeClient(i);
 	}
 }
@@ -123,16 +124,35 @@ void Server::pollin(size_t i)
 			// Check again if headers are fully received
 			if (request.find("\r\n\r\n") == std::string::npos)
 				return; // Still waiting for complete headers
-			else if (!isPostRequest(request, content_length))
+			if (!isPostRequest(request, content_length))
+			{
+				if (!client->_parser)
+					client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
 				client->pending_request = false;
+			}
+			else if (!client->_parser)
+				client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
 		}
-		else if (content_length > 0)
+		else if (content_length > 0 || isPostRequest(request, content_length))
 		{
 			// Only read body if content_length > 0 and body not yet read
+			int max_body_size = getMaxBodySize(client);
+			if (max_body_size < content_length && max_body_size != -1)
+			{
+				client->setResponse("HTTP/1.1 413 Payload Too Large\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n");
+				_pollfds[i].events = POLLOUT;
+				client->pending_request = false;
+				return;
+			}
 			if (content_length > 0)
 				request += readBody(i, content_length);
+			if (client->_parser)
+				client->_parser->updateRequest(request);
 			if (content_length == 0)
+			{
+				client->_parser->parseBody();
 				client->pending_request = false;
+			}
 			else
 				return; // Still waiting for complete body
 		}
@@ -146,10 +166,11 @@ void Server::pollin(size_t i)
 
 	// Check if the entire request (headers + body) has been received
 	if (!client->pending_request) {
+		client->_parser->parseBody();
 		printf("Received: %s\n", request.c_str());
 		std::cout << "Length of request: " << request.length() << std::endl;
 		// Handler function
-		matchLocation(client, request);
+		matchLocation(client);
 		_pollfds[i].events = POLLOUT;
 		// Reset for next request
 		client->content_length = 0;
@@ -202,6 +223,21 @@ bool Server::isPostRequest(const std::string& headers, int& content_length) {
 	return false;
 }
 
+int Server::getMaxBodySize(ClientSocket *client)
+{
+	std::string path = client->_parser->getPath();
+	int max_body_size;
+		std::string longest_match;
+		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
+			const std::string& location_path = it->first;
+			if (it->second->getServerIndex() == client->getServerIndex() &&
+				path.compare(0, location_path.size(), location_path) == 0 &&
+				location_path.size() > longest_match.size()) {
+				max_body_size = it->second->_location.client_max_body_size;
+			}
+		}
+	return max_body_size;
+}
 
 void Server::pollout(size_t i)
 {
@@ -221,10 +257,10 @@ void Server::pollout(size_t i)
 
 
 
-void Server::matchLocation(ClientSocket *client, std::string &raw_request)
+void Server::matchLocation(ClientSocket *client)
 {
+	HttpParser &request = *(client->_parser);
 	try {
-		HttpParser request(raw_request, _conf->servers[client->getServerIndex()]);
 		std::string path = request.getPath();
 
 		std::string longest_match;
@@ -240,7 +276,7 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 		std::string output;
 		if (request.isCgi)
 		{
-			try 
+			try
 			{
 				output = CGI(request, _conf->servers[client->getServerIndex()].locations.find(longest_match)->second.root + request.getScriptName()).run();
 			}
@@ -253,9 +289,13 @@ void Server::matchLocation(ClientSocket *client, std::string &raw_request)
 		else{
     		Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
         	response.init();
+			std::cout << "HERE" << std::endl;
 			output = response.serialize();
+			//delete client->_parser;
+			std::cout << "HERE 2" << std::endl;
 		}
         client->setResponse(output);
+		std::cout << "Here 3" << std::endl;
 	}
 	catch (const std::exception &e) {
 		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally

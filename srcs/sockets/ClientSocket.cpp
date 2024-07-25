@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/15 17:23:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:04:05 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,24 @@ ClientSocket::ClientSocket(int fd, int server_index) : _server_index(server_inde
 	content_length = 0;
 	pending_request = false;
 	this->socket_fd = fd;
+	_parser = NULL;
 	setLastRequest();
+}
+
+ClientSocket::ClientSocket(const ClientSocket &other) : _server_index(other._server_index)
+{
+	*this = other;
+}
+
+ClientSocket &ClientSocket::operator=(const ClientSocket &other)
+{
+	if (this != &other) {
+		_last_request = other._last_request;
+		_request = other._request;
+		_response = other._response;
+		//_server_index = other._server_index;
+	}
+	return *this;
 }
 
 int	ClientSocket::read_socket(void *buf, size_t len)
