@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 16:43:16 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:13:35 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,14 +41,11 @@ class ClientSocket : public ASocket
 {
 	private:
 		std::chrono::time_point<std::chrono::system_clock> _last_request;
-		std::string _request;
 		std::string _response;
 		const int _server_index;
 	public:
-		HttpParser *_parser;
-		int content_length;
+		Response handler;
 		bool pending_request;
-		std::string &getRequest();
 		const std::string &getResponse() const;
 		int getServerIndex() const;
 		std::chrono::time_point<std::chrono::system_clock> getLastRequest();

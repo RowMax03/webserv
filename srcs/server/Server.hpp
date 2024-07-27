@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/24 16:42:03 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:55:57 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "../conf_parser/ConfigParser.hpp"
 #include "LocationHandler.hpp"
 #include "../http/response/Response.hpp"
+#include "../http/response/SessionHandler.hpp"
 
 #define MAX_BUFFER 10240
 
@@ -29,6 +30,7 @@ class Server
 {
 private:
 	const Config::Parser* _conf;
+	SessionHandler _sessionHandler;
 	std::map<std::string ,LocationHandler*> _locations;
 	size_t _server_count;
 	std::vector<ServerSocket*> _servers;

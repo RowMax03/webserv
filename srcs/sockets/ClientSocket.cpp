@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocket.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 17:04:05 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:14:05 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ void	ClientSocket::write_socket(const void *buf, size_t len)
 
 // Getters and setters
 const std::string &ClientSocket::getResponse() const {return _response;}
-std::string &ClientSocket::getRequest() {return _request;}
 std::chrono::time_point<std::chrono::system_clock> ClientSocket::getLastRequest() {return _last_request;}
 int ClientSocket::getServerIndex() const {return _server_index;}
 void ClientSocket::setResponse(const std::string &response) {_response = response;}

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 17:48:57 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:09:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.servers.size())
 {
+	_sessionHandler = SessionHandler();
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
 		_servers[i]->listen_socket(5);
@@ -113,52 +114,21 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	client->setLastRequest();
-	std::string& request = client->getRequest();
-	int &content_length = client->content_length;
+	if (!client->pending_request)
+		client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
+	int &content_length = client->handler.Parser.getContentLengthToRead();
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
 		// Read headers
-		if (request.find("\r\n\r\n") == std::string::npos) { // Check if headers are fully received
-			// Headers not fully received, attempt to read more
+		if (client->handler.Parser.recivedHeader == false)
+		{
 			client->pending_request = true;
-			request += readHeaders(i);
-			// Check again if headers are fully received
-			if (request.find("\r\n\r\n") == std::string::npos)
-				return; // Still waiting for complete headers
-			if (!isPostRequest(request, content_length))
-			{
-				if (!client->_parser)
-					client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
-				client->pending_request = false;
-			}
-			else if (!client->_parser)
-				client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
+			client->handler.Parser.updateRawRequest(readHeaders(i));
 		}
 		// Read body
-		else if (content_length > 0 || isPostRequest(request, content_length))
-		{
-			// Only read body if content_length > 0 and body not yet read
-			int max_body_size = getMaxBodySize(client);
-			if (max_body_size < content_length && max_body_size != -1)
-			{
-				client->setResponse("HTTP/1.1 413 Payload Too Large\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n");
-				_pollfds[i].events = POLLOUT;
-				client->pending_request = false;
-				return;
-			}
-			if (content_length > 0)
-				request += readBody(i, content_length);
-			if (client->_parser)
-				client->_parser->updateRequest(request);
-			if (content_length == 0)
-			{
-				client->_parser->parseBody();
-				client->pending_request = false;
-			}
-			else
-				return; // Still waiting for complete body
-		}
-		if (content_length == 0)
+		else if (client->handler.Parser.readingBody == true)
+			client->handler.Parser.updateRawRequest(readBody(i, content_length));
+		if (content_length == 0 && client->handler.Parser.recivedHeader == true)
 			client->pending_request = false;
 	} catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
@@ -168,16 +138,8 @@ void Server::pollin(size_t i)
 
 	// Check if the entire request (headers + body) has been received
 	if (!client->pending_request) {
-		client->_parser->parseBody();
-		printf("Received: %s\n", request.c_str());
-		std::cout << "Length of request: " << request.length() << std::endl;
-		// Handler function
-		matchLocation(client);
+		client->setResponse(client->handler.serialize());
 		_pollfds[i].events = POLLOUT;
-		// Reset for next request
-		client->content_length = 0;
-		client->clearRequest();
-		client->pending_request = false;
 		return;
 	}
 	std::cout << "Request not fully received" << std::endl;

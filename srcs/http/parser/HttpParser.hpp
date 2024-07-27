@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 17:47:06 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:43:01 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,20 +33,28 @@ private:
 	std::string _version;
 	std::string _body;
 	std::istringstream _request;
-	const Config::Server *_server;
+	const Config::Server &_server;
+	Config::Location _location;
 	int _contentLength;
+	int _contentLengthToRead;
 	std::string trim(const std::string& str);
 	void parseUrl();
 	std::string decodeUrl(const std::string& url);
 	bool checkRequestLine();
 	void parse();
+	void validateHeader();
+	void updateRequest(const std::string& request);
 
 public:
+	bool recivedHeader;
+	bool readingBody;
 	HttpParser(const HttpParser &other);
 	HttpParser &operator=(const HttpParser &other);
 	HttpParser(const Config::Server &server);
 	~HttpParser();
+	void matchLocation()
 	void parseBody();
+	int &getContentLengthToRead();
 	std::vector<std::string> toCgiEnv() const;
 	std::string getMethod() const;
 	std::string getUrl() const;
@@ -54,8 +62,8 @@ public:
 	std::string getBody() const;
 	std::string getPath() const;
 	std::string getScriptName() const;
+	const Config::Location &getLocation() const;
 	std::map<std::string, std::string> getHeaders() const;
-	void updateRequest(const std::string& request);
 	void updateRawRequest(const std::string& request);
 	bool isCgi;
 };
