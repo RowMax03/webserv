@@ -9,45 +9,49 @@
 
 #include "ResponseHead.hpp"
 #include "../parser/HttpParser.hpp"
-
 struct Login {
     std::string Base64Login;
-	std::string username;
+    std::string username;
     std::string password;
-	static const std::string base64_chars =
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
+    static const std::string base64_chars;
 
     // Constructor for easy initialization
     Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
-		Base64Login = encodeLogin("myUsername", "myPassword");
-		}
-std::string base64_encode(const std::string &in) {
-    std::string out;
-
-    int val = 0, valb = -6;
-    for (unsigned char c : in) {
-        val = (val << 8) + c;
-        valb += 8;
-        while (valb >= 0) {
-            out.push_back(base64_chars[(val >> valb) & 0x3F]);
-            valb -= 6;
-        }
+        Base64Login = encodeLogin(username, password);
     }
-    if (valb > -6) out.push_back(base64_chars[((val << 8) >> (valb + 8)) & 0x3F]);
-    while (out.size() % 4) out.push_back('=');
-    return out;
-}
 
-std::string encodeLogin(const std::string& username, const std::string& password) {
-    return base64_encode(username + ":" + password);
-}
+    static std::string base64_encode(const std::string &in) {
+        std::string out;
+
+        int val = 0, valb = -6;
+        for (size_t i = 0; i < in.length(); i++) {
+            unsigned char c = in[i];
+            val = (val << 8) + c;
+            valb += 8;
+            while (valb >= 0) {
+                out.push_back(base64_chars[(val >> valb) & 0x3F]);
+                valb -= 6;
+            }
+        }
+        if (valb > -6) out.push_back(base64_chars[((val << 8) >> (valb + 8)) & 0x3F]);
+        while (out.size() % 4) out.push_back('=');
+        return out;
+    }
+
+    static std::string encodeLogin(const std::string& username, const std::string& password) {
+        return base64_encode(username + ":" + password);
+    }
+
     bool operator==(const Login& other) const {
         return username == other.username && password == other.password;
     }
 };
 
+
+const std::string Login::base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
 
 class SessionHandler {
 private:
@@ -57,40 +61,36 @@ private:
 
 public:
     // Default constructor
-  SessionHandler() {
+    SessionHandler() {
         _logins.push_back(Login("user1", "password1"));
         _logins.push_back(Login("user2", "password2"));
-}
-
-// Corrected copy constructor
-SessionHandler(const SessionHandler& other)
-    : _sessionStorage(other._sessionStorage) {
-    // Copy constructor logic here
-}
-
-// Corrected definition of parseBody without extra qualification
-std::map<std::string, std::string> parseBody(const std::string& body) {
-    std::map<std::string, std::string> parsedBody;
-    std::istringstream bodyStream(body);
-    std::string pair;
-
-    while (std::getline(bodyStream, pair, '&')) {
-        std::size_t delimiterPos = pair.find('=');
-        if (delimiterPos != std::string::npos) {
-            std::string key = pair.substr(0, delimiterPos);
-            std::string value = pair.substr(delimiterPos + 1);
-            parsedBody[key] = value;
-
-            // Debugging print statements
-            std::cout << "Key: " << key << ", Value: " << value << std::endl;
-        }
     }
 
-    return parsedBody;
-}
+    SessionHandler(const SessionHandler& other)
+        : _logins(other._logins), _sessionStorage(other._sessionStorage) {
+    }
+
+// Corrected definition of parseBody without extra qualification
+    std::map<std::string, std::string> parseBody(const std::string& body) {
+        std::map<std::string, std::string> parsedBody;
+        std::istringstream bodyStream(body);
+        std::string pair;
+
+        while (std::getline(bodyStream, pair, '&')) {
+            std::size_t delimiterPos = pair.find('=');
+            if (delimiterPos != std::string::npos) {
+                std::string key = pair.substr(0, delimiterPos);
+                std::string value = pair.substr(delimiterPos + 1);
+                parsedBody[key] = value;
+            }
+        }
+
+        return parsedBody;
+    }
     // Copy assignment operator
     SessionHandler& operator=(const SessionHandler& other) {
         if (this != &other) {
+            _logins = other._logins;
             _sessionStorage = other._sessionStorage;
         }
         return *this;
@@ -109,9 +109,10 @@ void generateSession(const std::string& incomingCreds) {
 		throw std::runtime_error("401");
 	}
 }
+
     bool validateCredentials(const std::string& incomingCreds) {
-        for (const auto& login : _logins) {
-            if (login.encodedCredentials == incomingCreds) {
+        for (size_t i = 0; i < _logins.size(); ++i) {
+            if (_logins[i].Base64Login == incomingCreds) {
                 return true; // Credentials are valid
             }
         }
