@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 17:31:57 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:48:57 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void Server::pollin(size_t i)
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
 		// Read headers
-		if (request.find("\r\n\r\n") == std::string::npos) {
+		if (request.find("\r\n\r\n") == std::string::npos) { // Check if headers are fully received
 			// Headers not fully received, attempt to read more
 			client->pending_request = true;
 			request += readHeaders(i);
