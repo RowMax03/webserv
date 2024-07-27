@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:37 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/25 17:58:41 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void ResponseHead::init() {
     std::map <std::string, std::string> headers = _parser.getHeaders();
     checkLocation();
     checkRedirect();
-    setConnectionType("keep-alive");
+    setConnectionType("close");
     setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
     setContentLength("0");
     setAllow(join(location.methods, ", "));

@@ -1,31 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   LocationHandler.hpp                                :+:      :+:    :+:   */
+/*   UploadHandler.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/17 16:37:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/24 16:33:21 by mreidenb         ###   ########.fr       */
+/*   Created: 2024/07/12 22:23:38 by mreidenb          #+#    #+#             */
+/*   Updated: 2024/07/13 14:46:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Server.hpp"
-#include "../http/parser/HttpParser.hpp"
-#include "../cgi/CGI.hpp"
-#include "../http/files/FileHandler.hpp"
+#include <string>
+#include <fstream>
 
-class LocationHandler
+class UploadHandler
 {
 	private:
-		const int _server_index;
-		std::string validRequest(HttpParser &request);
+		const std::string &_location;
+		const std::string &_body;
+		std::string _boundary;
+		void parseBody();
+		void saveFile(const std::string &filename, const std::string &content);
 	public:
-		const Config::Location &_location;
-		LocationHandler(const Config::Location &location, const int server_index);
-		~LocationHandler();
-		std::string handleRequest(HttpParser &request);
-		int getServerIndex() const;
+		UploadHandler(const std::string &location, const std::string &ct_header, const std::string &body);
+		~UploadHandler();
 };
