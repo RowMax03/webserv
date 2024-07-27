@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:35:41 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 22:49:32 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,6 @@
 
 class ResponseHead {
 private:
-    HttpParser _parser;
-    const Config::Server *_config;
     std::string _header;
     std::string _statusCode;
     std::string _statusMessage;
@@ -40,31 +38,28 @@ private:
     std::string _retryAfter;
     std::string _transferEncoding;
     std::string _wwwAuthenticate;
+	std::string _cookie;
 
 public:
+std::string ServerName;
     Config::Location location;
     std::string fullPathToFile;
     std::string location_path;
     long unsigned int numClients;
 
-    ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path, int numClients);
+    ResponseHead();
 
-    ResponseHead(const ResponseHead &other);
-
-    ResponseHead &operator=(const ResponseHead &other);
 
     ~ResponseHead();
 
-    void init();
-
-    std::string serialize();
-
+    std::string serialize(HttpParser &parser);
+	void setDefault(Config::Location location, HttpParser &parser, std::string ServerName, int numClients);
 
     //utils
 
-    float calculateServerLoad();
+    float calculateServerLoad(int activeConnections);
 
-    std::string calculateRetryAfter();
+    std::string calculateRetryAfter(int numClients);
 
     std::string formatLastModifiedTime(const std::string &filePath);
 
@@ -73,9 +68,10 @@ public:
     std::string intToString(int value);
 
 
-    void filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it, std::string path);
+    void filecheck(std::string fullPath,
+                             std::string path);
 
-    void checkLocation();
+    void checkLocation(Config::Location location, HttpParser &_parser);
 
     void checkRedirect();
 
@@ -138,4 +134,8 @@ public:
     std::string getWwwAuthenticate() const;
 
     void setWwwAuthenticate(const std::string &wwwAuthenticate);
+
+	void setCookie(const std::string &cookie);
+	std::string getCookie() const;
+
 };

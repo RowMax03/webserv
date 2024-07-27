@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 16:36:25 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 00:21:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.servers.size())
 {
+	_sessionHandler = SessionHandler();
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
 		_servers[i]->listen_socket(5);
@@ -92,7 +93,7 @@ int Server::Start()
 			}
 			if (i < _server_count && _pollfds[i].revents & POLLIN) {
 				std::cout << "New connection for server i: " << i << std::endl;
-				addClient(_servers[i]->accept_socket(i));
+				addClient(_servers[i]->accept_socket(i, _conf->servers[i], _sessionHandler, _clients.size()));
 			}
 			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
 				std::cout << "Client ready to read at i: " << i << std::endl;
@@ -113,74 +114,31 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	client->setLastRequest();
-	std::string& request = client->getRequest();
-	int &content_length = client->content_length;
+	// if (!client->pending_request)
+		// client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
+	int &content_length = client->handler.Parser.getContentLengthToRead();
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
-		// Read headers
-		if (request.find("\r\n\r\n") == std::string::npos) {
-			// Headers not fully received, attempt to read more
+		if (client->handler.Parser.recivedHeader == false) {
 			client->pending_request = true;
-			request += readHeaders(i);
-			// Check again if headers are fully received
-			if (request.find("\r\n\r\n") == std::string::npos)
-				return; // Still waiting for complete headers
-			if (!isPostRequest(request, content_length))
-			{
-				if (!client->_parser)
-					client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
-				client->pending_request = false;
-			}
-			else if (!client->_parser)
-				client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
+			client->handler.recive(readHeaders(i));
 		}
-		// Read body
-		else if (content_length > 0 || isPostRequest(request, content_length))
-		{
-			// Only read body if content_length > 0 and body not yet read
-			int max_body_size = getMaxBodySize(client);
-			if (max_body_size < content_length && max_body_size != -1)
-			{
-				client->setResponse("HTTP/1.1 413 Payload Too Large\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n");
-				_pollfds[i].events = POLLOUT;
-				client->pending_request = false;
-				return;
-			}
-			if (content_length > 0)
-				request += readBody(i, content_length);
-			if (client->_parser)
-				client->_parser->updateRequest(request);
-			if (content_length == 0)
-			{
-				client->_parser->parseBody();
-				client->pending_request = false;
-			}
-			else
-				return; // Still waiting for complete body
-		}
-		if (content_length == 0)
+		else if (client->handler.Parser.readingBody == true)
+			client->handler.recive(readBody(i, content_length));
+		if (content_length == 0 && client->handler.Parser.recivedHeader == true && client->handler.Parser.readingBody == false)
 			client->pending_request = false;
 	} catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		removeClient(i);
 		return;
 	}
-
-	// Check if the entire request (headers + body) has been received
-	if (!client->pending_request) {
-		client->_parser->parseBody();
-		printf("Received: %s\n", request.c_str());
-		std::cout << "Length of request: " << request.length() << std::endl;
-		// Handler function
-		matchLocation(client);
+	if (!client->pending_request || (!client->handler.Parser.readingBody && client->handler.Parser.recivedHeader)) {
+		client->setResponse(client->handler.serialize());
+		client->handler.Parser.reset();
 		_pollfds[i].events = POLLOUT;
-		// Reset for next request
-		client->content_length = 0;
-		client->clearRequest();
-		client->pending_request = false;
 		return;
 	}
-	std::cout << "Request not fully received" << std::endl;
+	std::cout << "Request not fully received, conent length left: " << content_length << std::endl;
 }
 
 // Function to read headers and return the headers as a string
@@ -206,41 +164,6 @@ std::string Server::readBody(size_t i, int &content_length) {
 	return body;
 }
 
-// Function to determine if the request is a POST request and to extract content length
-bool Server::isPostRequest(const std::string& headers, int& content_length) {
-	if (content_length > 0) {
-		return true;
-	}
-	if (headers.find("POST") != std::string::npos) {
-		size_t pos = headers.find("Content-Length:");
-		if (pos != std::string::npos) {
-			std::string content_length_str = headers.substr(pos + 16, headers.find("\r\n", pos) - (pos + 16));
-			content_length = std::stoi(content_length_str);
-			size_t endOfHeaders = headers.find("\r\n\r\n");
-			int alreadyRead = headers.length() - (endOfHeaders + 4); // +4 for the length of "\r\n\r\n"
-			content_length -= alreadyRead; // Adjust content_length
-			return true;
-		}
-	}
-	return false;
-}
-
-int Server::getMaxBodySize(ClientSocket *client)
-{
-	std::string path = client->_parser->getPath();
-	int max_body_size;
-		std::string longest_match;
-		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
-			const std::string& location_path = it->first;
-			if (it->second->getServerIndex() == client->getServerIndex() &&
-				path.compare(0, location_path.size(), location_path) == 0 &&
-				location_path.size() > longest_match.size()) {
-				max_body_size = it->second->_location.client_max_body_size;
-			}
-		}
-	return max_body_size;
-}
-
 void Server::pollout(size_t i)
 {
 	_clients[i - _server_count]->setLastRequest();
@@ -248,61 +171,11 @@ void Server::pollout(size_t i)
 	const char *raw = response.c_str();
 	try {
 		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
-		//std::cout << "Sending: " << response << std::endl;
+		std::cout << "Sending: " << response << std::endl;
 		_pollfds[i].events = POLLIN;
 	}
 	catch (const std::exception &e){
 		removeClient(i);
-		std::cerr << e.what() << std::endl;
-	}
-}
-
-
-
-void Server::matchLocation(ClientSocket *client)
-{
-	HttpParser &request = *(client->_parser);
-	try {
-		std::string path = request.getPath();
-
-		std::string longest_match;
-		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
-			const std::string& location_path = it->first;
-			if (it->second->getServerIndex() == client->getServerIndex() &&
-				path.compare(0, location_path.size(), location_path) == 0 &&
-				location_path.size() > longest_match.size()) {
-				longest_match = location_path;
-			}
-		}
-        std::cout << "Location matched: " << longest_match << std::endl;
-		std::string output;
-		if (request.isCgi)
-		{
-			try
-			{
-				output = CGI(request, _conf->servers[client->getServerIndex()].locations.find(longest_match)->second.root + request.getScriptName()).run();
-			}
-			catch (std::exception &e)
-			{
-				std::cerr << e.what() << std::endl;
-				output = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
-			}
-		}
-		else{
-    		Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
-        	response.init();
-			std::cout << "HERE" << std::endl;
-			output = response.serialize();
-			//delete client->_parser;
-			std::cout << "HERE 2" << std::endl;
-		}
-        client->setResponse(output);
-		std::cout << "Here 3" << std::endl;
-	}
-	catch (const std::exception &e) {
-		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally
-		//replace with error handler later
-		client->setResponse("HTTP/1.1 400 Bad Request\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n");
 		std::cerr << e.what() << std::endl;
 	}
 }

@@ -3,73 +3,62 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/25 17:58:41 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 01:08:05 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "ResponseHead.hpp"
 
-ResponseHead::ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path,
-                           int numClients) : _parser(_parser), _config(&conf), location_path(location_path),
-                                             numClients(numClients) {
-    setStatusCode("");
-    setStatusMessage("");
-    setAllow("");
-    setConnectionType("");
-    setContentLanguage("");
-    setContentLength("");
-    setContentLocation("");
-    setContentType("");
-    setLastModified("");
-    setRetryAfter("");
-    setTransferEncoding("");
-    setWwwAuthenticate("");
-
+ResponseHead::ResponseHead(){
+        setHeader("");
+        setStatusCode("");
+        setStatusMessage("");
+        setConnectionType("");
+        setContentType("");
+        setContentLength("");
+        setAllow("");
+        setContentLanguage("");
+        setContentLocation("");
+        setLastModified("");
+        setLocation("");
+        setRetryAfter("");
+        setTransferEncoding("");
+        setWwwAuthenticate("");
 }
 
-ResponseHead::ResponseHead(const ResponseHead &other) : _parser(other._parser), _config(other._config),
-                                                        _header(other._header) {}
-
-ResponseHead &ResponseHead::operator=(const ResponseHead &other) {
-    if (this != &other) {
-        _parser = other._parser;
-        _config = other._config;
-        _header = other._header;
-    }
-    return *this;
-}
 
 ResponseHead::~ResponseHead() {}
 
-void ResponseHead::init() {
+void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std::string ServerName, int numClients) {
+	this->ServerName = ServerName;
+	location_path = location.path;
     setStatusCode("200");
     setStatusMessage("OK");
-
-    std::map <std::string, std::string> headers = _parser.getHeaders();
-    checkLocation();
+	this->location = location;
+    checkLocation(location, parser);
     checkRedirect();
-    setConnectionType("close");
-    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
+    setConnectionType("keep-alive");
     setContentLength("0");
-    setAllow(join(location.methods, ", "));
-    setContentLanguage("");
-    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
+    setAllow(join(this->location.methods, ", "));
+	std::string modPath = parser.getPath();
+        if (modPath.find(location_path) == 0)
+            modPath.erase(0, location_path.length());
+    setContentLocation((parser.getPath() == location_path ? this->location.index : modPath));
     setLastModified(formatLastModifiedTime(fullPathToFile));
-    setRetryAfter(calculateRetryAfter());
-    setTransferEncoding("");
-    setWwwAuthenticate("");
-}
+    setRetryAfter(calculateRetryAfter(numClients));
+	checkRedirect();
+	}
 
-std::string ResponseHead::serialize() {
+std::string ResponseHead::serialize(HttpParser &parser) {
     std::ostringstream oss;
-    if (!_parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
-        oss << _parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
-    if (!_config->server_name.empty())
-        oss << "Server: " << _config->server_name << "\r\n";
+    if (!parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
+        oss << parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
+    if (!this->ServerName.empty())
+        oss << "Server: " << this->ServerName << "\r\n";
     if (!getCurrentDate().empty())
         oss << "Date: " << getCurrentDate() << "\r\n";
     if (!getConnectionType().empty())
@@ -92,25 +81,29 @@ std::string ResponseHead::serialize() {
         oss << "Retry-After: " << getRetryAfter() << "\r\n";
     if (!getTransferEncoding().empty())
         oss << "Transfer-Encoding: " << getTransferEncoding() << "\r\n";
-    if (!getWwwAuthenticate().empty())
+    if (!getWwwAuthenticate().empty()) {
         oss << "WWW-Authenticate: " << getWwwAuthenticate() << "\r\n";
+    }
+    if (!getCookie().empty()){
+		oss << "Set-Cookie: " << getCookie() << "\r\n";
+	}
     oss << "\r\n";
 
     return oss.str();
 }
 
 
-//utils
 
-float ResponseHead::calculateServerLoad() {
-    int activeConnections = numClients;
+//########################################## utils ##########################################
+
+float ResponseHead::calculateServerLoad(int activeConnections) {
     int maxConnections = 100;
     float load = static_cast<float>(activeConnections) / maxConnections;
     return load;
 }
 
-std::string ResponseHead::calculateRetryAfter() {
-    float load = calculateServerLoad();
+std::string ResponseHead::calculateRetryAfter(int activeConnections) {
+    float load = calculateServerLoad(activeConnections);
     int delay;
 
     if (load > 0.75) {
@@ -155,28 +148,26 @@ std::string ResponseHead::intToString(int value) {
 }
 
 
-void ResponseHead::filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it,
+void ResponseHead::filecheck(std::string fullPath,
                              std::string path) {
     std::ifstream file(fullPath.c_str());
     if (file.good()) {
-        location = it->second;
         fullPathToFile = fullPath;
         setLocation(path);
         file.close();
     } else
-        return;
+        throw std::runtime_error("404");
 }
 
-void ResponseHead::checkLocation() {
-    std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(location_path);
-    if (it != _config->locations.end()) {
-        std::string modPath = _parser.getPath();
+void ResponseHead::checkLocation(Config::Location location, HttpParser &parser) {
+
+        std::string modPath = parser.getPath();
         if (modPath.find(location_path) == 0)
             modPath.erase(0, location_path.length());
-        std::string fullPath = it->second.root + (_parser.getPath() == location_path ? it->second.index : modPath);
+
+        std::string fullPath = location.root + (parser.getPath() == location_path ? location.index : modPath);
         std::cout << "fullpath :" << fullPath << std::endl;
-        filecheck(fullPath, it, _parser.getPath());
-    }
+        filecheck(fullPath, parser.getPath());
 }
 
 void ResponseHead::checkRedirect() {
@@ -255,3 +246,6 @@ void ResponseHead::setTransferEncoding(const std::string &transferEncoding) { _t
 std::string ResponseHead::getWwwAuthenticate() const { return _wwwAuthenticate; }
 
 void ResponseHead::setWwwAuthenticate(const std::string &wwwAuthenticate) { _wwwAuthenticate = wwwAuthenticate; }
+
+std::string ResponseHead::getCookie() const { return _cookie; }
+void ResponseHead::setCookie(const std::string &cookie) { _cookie = cookie; }

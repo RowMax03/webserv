@@ -6,12 +6,10 @@
 
 class ResponseBody {
 private:
-    HttpParser _parser;
-    const Config::Server *_config;
     std::string body;
 
 public:
-    ResponseBody(const HttpParser &parser, const Config::Server &config);
+    ResponseBody();
 
     ResponseBody(const ResponseBody &other);
 

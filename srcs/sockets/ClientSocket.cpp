@@ -3,25 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocket.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 17:04:05 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:20:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Socket.hpp"
 
-ClientSocket::ClientSocket(int fd, int server_index) : _server_index(server_index)
+ClientSocket::ClientSocket(int fd, int server_index, const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
+: _server_index(server_index) , handler(Response(config, sessionHandler, clients))
 {
-	content_length = 0;
 	pending_request = false;
 	this->socket_fd = fd;
-	_parser = NULL;
 	setLastRequest();
 }
 
-ClientSocket::ClientSocket(const ClientSocket &other) : _server_index(other._server_index)
+ClientSocket::ClientSocket(const ClientSocket &other) : _server_index(other._server_index) , handler(other.handler)
 {
 	*this = other;
 }
@@ -30,7 +29,6 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &other)
 {
 	if (this != &other) {
 		_last_request = other._last_request;
-		_request = other._request;
 		_response = other._response;
 		//_server_index = other._server_index;
 	}
@@ -62,11 +60,8 @@ void	ClientSocket::write_socket(const void *buf, size_t len)
 
 // Getters and setters
 const std::string &ClientSocket::getResponse() const {return _response;}
-std::string &ClientSocket::getRequest() {return _request;}
 std::chrono::time_point<std::chrono::system_clock> ClientSocket::getLastRequest() {return _last_request;}
 int ClientSocket::getServerIndex() const {return _server_index;}
 void ClientSocket::setResponse(const std::string &response) {_response = response;}
-void ClientSocket::setRequest(const std::string &request) {_request += request;}
 void ClientSocket::setLastRequest() {_last_request = std::chrono::system_clock::now();}
-void ClientSocket::clearRequest() {_request.clear();}
 

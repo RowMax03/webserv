@@ -3,21 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 18:00:26 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 01:20:07 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false) {
-	_request = std::istringstream(request);
+HttpParser::HttpParser(const Config::Server &server) : _server(&server), _contentLength(0), _contentLengthToRead(0) , recivedHeader(false), readingBody(false), isCgi(false) {
 	std::cout << "Parser Constructor" << std::endl;
-
-	parse();
 }
 
 HttpParser::~HttpParser() {
@@ -44,13 +41,32 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 		_headers = other._headers;
 		isCgi = other.isCgi;
 		std::string requestContent = other._request.str();
-		_request = std::istringstream(requestContent);
+		_request.clear();
+		_request.str(requestContent);
 	}
 	return *this;
 }
 
+void HttpParser::updateRawRequest(const std::string& request) {
+	_rawRequest += request;
+	// std::cout << "Raw Request: " << _rawRequest << std::endl;
+	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
+		recivedHeader = true;
+		updateRequest(request);
+		parse();
+	}
+	if (recivedHeader && readingBody) {
+		if (_contentLengthToRead <= 0) {
+			readingBody = false;
+			updateRequest(request);
+			parseBody();
+		}
+	}
+}
+
 // parse the raw request into the method, url, version, headers, and body
 void HttpParser::parse() {
+	std::cout << "Parsing request" << std::endl;
 	std::string line;
 
 	std::getline(_request, line);
@@ -59,7 +75,7 @@ void HttpParser::parse() {
 	std::istringstream firstLine(line);
 	firstLine >> _method >> _url >> _version;
 	if (firstLine.fail() || !firstLine.eof() || !checkRequestLine())
-		throw std::runtime_error("Invalid request line");
+		throw std::runtime_error("400");
 	while (std::getline(_request, line) && line != "\r") {
 		std::istringstream headerLine(line);
 		std::string key;
@@ -67,27 +83,62 @@ void HttpParser::parse() {
 		std::string value;
 		std::getline(headerLine, value);
 		if (headerLine.fail() || key.empty() || value.empty())
-			throw std::runtime_error("Invalid header line");
+			throw std::runtime_error("400");
 		_headers[key] = trim(value);
 	}
-
+	if (_headers.find("Content-Length") != _headers.end())
+		_contentLength = std::stoi(_headers["Content-Length"]);
 	parseUrl();
+	matchLocation();
+	validateHeader();
+	std::cout << "Parsed request" << std::endl;
 }
 
-// update the request string in the parser
+// match the location block to the request
+void HttpParser::matchLocation() {
+	std::string path = _path;
+	std::string longest_match;
+	if (path.empty())
+		path = "/";
+	std::map <std::string, Config::Location> locations = _server->locations;
+	for (std::map<std::string, Config::Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+		const std::string& location_path = it->first;
+		if (path.compare(0, location_path.size(), location_path) == 0 &&
+			location_path.size() > longest_match.size()) {
+			longest_match = location_path;
+		}
+	}
+	_location = locations[longest_match];
+}
+
+void HttpParser::validateHeader() {
+	if (std::find(_location.methods.begin(), _location.methods.end(), _method) == _location.methods.end())
+		throw std::runtime_error("405");
+	if (_location.client_max_body_size != -1 && _contentLength > _location.client_max_body_size)
+		throw std::runtime_error("413");
+	if (_method == "POST" && _contentLength > 0)
+	{
+		readingBody = true;
+		size_t endOfHeader = _rawRequest.find("\r\n\r\n");
+		_contentLengthToRead = _contentLength - (_rawRequest.length() - (endOfHeader + 4));
+	}
+}
+
 void HttpParser::updateRequest(const std::string& request) {
-	_request.str(request);
-	_request.clear();
+	_request << request;
 }
 
 void HttpParser::parseBody() {
 	// parse the body of the request
-	if (_headers.find("Content-Length") != _headers.end() && _body.empty()) {
-	_contentLength = std::stoi(_headers["Content-Length"]);
+	std::istringstream bodyStream(_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4));
+	if (_body.empty()) {
 	std::vector<char> _bodyChars(_contentLength);
-	_request.read(&_bodyChars[0], _contentLength);
-	if (_request.gcount() != _contentLength)
-		throw std::runtime_error("Body length does not match Content-Length header body length: " + std::to_string(_request.gcount()) + " vs " + std::to_string(_contentLength));
+	bodyStream.read(&_bodyChars[0], _contentLength);
+	if (bodyStream.gcount() != _contentLength)
+	{
+		std::cout << "Body length does not match Content-Length header body length: " << bodyStream.gcount() << " vs " << _contentLength << std::endl;
+		throw std::runtime_error("400");
+	}
 	_body.assign(_bodyChars.begin(), _bodyChars.end());
 	}
 }
@@ -187,6 +238,8 @@ std::string HttpParser::getBody() const { return _body; }
 std::string HttpParser::getPath() const { return _path; }
 std::string HttpParser::getScriptName() const { return _scriptName; }
 std::map<std::string, std::string> HttpParser::getHeaders() const { return _headers; }
+const Config::Location &HttpParser::getLocation() const { return _location; }
+int &HttpParser::getContentLengthToRead() { return _contentLengthToRead; }
 
 // trim whitespace from the beginning and end of a string
 std::string HttpParser::trim(const std::string& str) {
@@ -195,4 +248,23 @@ std::string HttpParser::trim(const std::string& str) {
 		return "";
 	std::size_t last = str.find_last_not_of(" \t\r");
 	return str.substr(first, last - first + 1);
+}
+
+void HttpParser::reset() {
+	_rawRequest.clear();
+	_method.clear();
+	_url.clear();
+	_scriptName.clear();
+	_path.clear();
+	_pathInfo.clear();
+	_queryString.clear();
+	_version.clear();
+	_body.clear();
+	_request.clear();
+	_contentLength = 0;
+	_contentLengthToRead = 0;
+	_headers.clear();
+	recivedHeader = false;
+	readingBody = false;
+	isCgi = false;
 }
