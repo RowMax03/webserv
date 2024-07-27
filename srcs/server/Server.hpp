@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 19:55:57 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:18:17 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,6 @@ private:
 	void pollin(size_t i);
 	std::string readHeaders(size_t i);
 	std::string readBody(size_t i, int &content_length);
-	bool isPostRequest(const std::string &headers, int &content_length);
-	int getMaxBodySize(ClientSocket *client);
-	void matchLocation(ClientSocket *client);
 	void pollout(size_t i);
 public:
 	Server(const Config::Parser &conf);

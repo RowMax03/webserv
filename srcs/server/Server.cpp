@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:09:43 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:17:58 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,13 +119,10 @@ void Server::pollin(size_t i)
 	int &content_length = client->handler.Parser.getContentLengthToRead();
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
-		// Read headers
-		if (client->handler.Parser.recivedHeader == false)
-		{
+		if (client->handler.Parser.recivedHeader == false) {
 			client->pending_request = true;
 			client->handler.Parser.updateRawRequest(readHeaders(i));
 		}
-		// Read body
 		else if (client->handler.Parser.readingBody == true)
 			client->handler.Parser.updateRawRequest(readBody(i, content_length));
 		if (content_length == 0 && client->handler.Parser.recivedHeader == true)
@@ -135,8 +132,6 @@ void Server::pollin(size_t i)
 		removeClient(i);
 		return;
 	}
-
-	// Check if the entire request (headers + body) has been received
 	if (!client->pending_request) {
 		client->setResponse(client->handler.serialize());
 		_pollfds[i].events = POLLOUT;
@@ -168,41 +163,6 @@ std::string Server::readBody(size_t i, int &content_length) {
 	return body;
 }
 
-// Function to determine if the request is a POST request and to extract content length
-bool Server::isPostRequest(const std::string& headers, int& content_length) {
-	if (content_length > 0) {
-		return true;
-	}
-	if (headers.find("POST") != std::string::npos) {
-		size_t pos = headers.find("Content-Length:");
-		if (pos != std::string::npos) {
-			std::string content_length_str = headers.substr(pos + 16, headers.find("\r\n", pos) - (pos + 16));
-			content_length = std::stoi(content_length_str);
-			size_t endOfHeaders = headers.find("\r\n\r\n");
-			int alreadyRead = headers.length() - (endOfHeaders + 4); // +4 for the length of "\r\n\r\n"
-			content_length -= alreadyRead; // Adjust content_length
-			return true;
-		}
-	}
-	return false;
-}
-
-int Server::getMaxBodySize(ClientSocket *client)
-{
-	std::string path = client->_parser->getPath();
-	int max_body_size;
-		std::string longest_match;
-		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
-			const std::string& location_path = it->first;
-			if (it->second->getServerIndex() == client->getServerIndex() &&
-				path.compare(0, location_path.size(), location_path) == 0 &&
-				location_path.size() > longest_match.size()) {
-				max_body_size = it->second->_location.client_max_body_size;
-			}
-		}
-	return max_body_size;
-}
-
 void Server::pollout(size_t i)
 {
 	_clients[i - _server_count]->setLastRequest();
@@ -215,58 +175,6 @@ void Server::pollout(size_t i)
 	}
 	catch (const std::exception &e){
 		removeClient(i);
-		std::cerr << e.what() << std::endl;
-	}
-}
-
-
-
-void Server::matchLocation(ClientSocket *client)
-{
-	HttpParser &request = *(client->_parser);
-	try {
-		std::string path = request.getPath();
-
-		std::string longest_match;
-		for (std::map<std::string, LocationHandler*>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) {
-			const std::string& location_path = it->first;
-			if (it->second->getServerIndex() == client->getServerIndex() &&
-				path.compare(0, location_path.size(), location_path) == 0 &&
-				location_path.size() > longest_match.size()) {
-				longest_match = location_path;
-			}
-		}
-        std::cout << "Location matched: " << longest_match << std::endl;
-		std::string output;
-		if (request.isCgi)
-		{
-			try
-			{
-				output = CGI(request, _conf->servers[client->getServerIndex()].locations.find(longest_match)->second.root + request.getScriptName()).run();
-			}
-			catch (std::exception &e)
-			{
-				std::cerr << e.what() << std::endl;
-				output = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n";
-			}
-		}
-		else{
-    		Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
-        	response.init();
-			std::cout << "HERE" << std::endl;
-			output = response.serialize();
-			//delete client->_parser;
-			std::cout << "HERE 2" << std::endl;
-		}
-        client->setResponse(output);
-		std::cout << "Here 3" << std::endl;
-        Response response(request, _conf->servers[client->getServerIndex()], longest_match, _clients.size());
-        client->setResponse(response.serialize());
-	}
-	catch (const std::exception &e) {
-		// something wrong with the request, LocationHandler doesn't throw because it handles errors internally
-		//replace with error handler later
-		client->setResponse("HTTP/1.1 400 Bad Request\r\nContent-Type: none\r\nContent-Length: 0\r\n\r\n");
 		std::cerr << e.what() << std::endl;
 	}
 }
