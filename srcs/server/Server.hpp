@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:56:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/11 17:02:33 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/24 16:42:03 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "LocationHandler.hpp"
 #include "../http/response/Response.hpp"
 
-#define MAX_BUFFER 1024
+#define MAX_BUFFER 10240
 
 class LocationHandler;
 struct pollfd;
@@ -35,14 +35,16 @@ private:
 	std::vector<ClientSocket*> _clients;
 	std::vector<pollfd> _pollfds;
 	void removeClient(size_t i);
+	void timeoutCheck(size_t i);
+	bool checkRevents(size_t i);
 	void addClient(ClientSocket *client);
 	//pollin fuctions
 	void pollin(size_t i);
 	std::string readHeaders(size_t i);
-	std::string readBody(size_t i, int content_length);
+	std::string readBody(size_t i, int &content_length);
 	bool isPostRequest(const std::string &headers, int &content_length);
-
-	void matchLocation(ClientSocket *client, std::string &raw_request);
+	int getMaxBodySize(ClientSocket *client);
+	void matchLocation(ClientSocket *client);
 	void pollout(size_t i);
 public:
 	Server(const Config::Parser &conf);

@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/23 20:39:26 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:26:31 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,129 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
     }
     std::string result = oss.str();
     return result;
+}
+
+void Response::init() {
+	//try catch if error than error handler
+	// header shit
+		//construct empty error handler with empty head and body
+		// cathc errorhandler handle error code function
+	//parse request
+		//parse request line
+		//parse headers
+	//getlocation / matchlocation
+    //session handling csrf token throws with bad request if false
+	//session handling auth throws with 401
+
+
+	//body shit
+	//parse body
+
+
+	//switch on request method
+		//hande difrent cases CGI , GET, POST, DELETE
+			//set response head and body
+			//set mime type
+
+	//error checking ?? throw with response code when error checking methods return true
+	//end of funciton next step is to serialize response and pollout
+
+
+
+
+	responseHead.init();
+    ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
+	if (_parser.getMethod() == "POST" && _parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
+		try {
+		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
+		UploadHandler uploadHandler(responseHead.location.uploadDir , _parser.getHeaders()["Content-Type"], _parser.getBody());
+		}
+		catch (const std::exception &e) {
+			std::cerr << e.what() << std::endl;
+			errorHandler.handleErrorCode("500");
+		}
+	}
+    if (errorHandler.isBadRequest() && errorHandler.checkMethod())
+        errorHandler.handleErrorCode("403");
+    if (!errorHandler.checkPath())
+        errorHandler.checkMethod();
+    if (_parser.isCgi) {
+        // CGI
+        try {
+            CGI cgi(_parser, responseHead.fullPathToFile);
+            responseBody.setBody(cgi.run());
+        }
+        catch (const std::exception &e) {
+            std::cerr << e.what() << std::endl;
+            std::string error = e.what();
+            // Error handling, replace with error handler later
+            if (error == "file not found")
+                errorHandler.handleErrorCode("404");
+            else if (error == "file not executable")
+                errorHandler.handleErrorCode("403");
+            else
+                errorHandler.handleErrorCode("500");
+        }
+    } else {
+        DIR *dir = opendir(responseHead.fullPathToFile.c_str());
+        if (responseHead.location.autoindex && dir != NULL) {
+            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
+            responseBody.setBody(directoryListing);
+            responseHead.setContentLength(intToString(directoryListing.size()));
+            responseHead.setStatusCode("201");
+            responseHead.setStatusMessage("Created");
+            closedir(dir);
+        } else if (responseBody.getBody().empty()) {
+			setMimeType(responseHead.fullPathToFile);
+            responseBody.init(responseHead.fullPathToFile);
+        }
+    }
+}
+
+void Response::setMimeType(const std::string& filePath) {
+	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
+	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+    std::map<std::string, std::string> mimeTypes;
+    mimeTypes["html"] = "text/html";
+    mimeTypes["txt"] = "text/plain";
+    mimeTypes["js"] = "application/javascript";
+    mimeTypes["svg"] = "image/svg+xml";
+    mimeTypes["css"] = "text/css";
+    mimeTypes["jpg"] = "image/jpeg";
+    mimeTypes["png"] = "image/png";
+    mimeTypes["gif"] = "image/gif";
+    mimeTypes["pdf"] = "application/pdf";
+    mimeTypes["json"] = "application/json";
+    mimeTypes["xml"] = "application/xml";
+    mimeTypes["csv"] = "text/csv";
+    mimeTypes["mp3"] = "audio/mpeg";
+    mimeTypes["wav"] = "audio/wav";
+    mimeTypes["mp4"] = "video/mp4";
+    mimeTypes["avi"] = "video/x-msvideo";
+    mimeTypes["mov"] = "video/quicktime";
+    mimeTypes["doc"] = "application/msword";
+    mimeTypes["docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    mimeTypes["ppt"] = "application/vnd.ms-powerpoint";
+    mimeTypes["pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    mimeTypes["xls"] = "application/vnd.ms-excel";
+    mimeTypes["xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    mimeTypes["ico"] = "image/x-icon";
+    mimeTypes["webp"] = "image/webp";
+    mimeTypes["otf"] = "font/otf";
+    mimeTypes["ttf"] = "font/ttf";
+    mimeTypes["woff"] = "font/woff";
+    mimeTypes["woff2"] = "font/woff2";
+    mimeTypes["eot"] = "application/vnd.ms-fontobject";
+    mimeTypes["sfnt"] = "font/sfnt";
+
+
+    std::map<std::string, std::string>::iterator it = mimeTypes.find(extension);
+    if (it != mimeTypes.end()) {
+        responseHead.setContentType(it->second);
+    }
+	else
+    	responseHead.setContentType("application/octet-stream");// Default MIME type for unknown/other files
 }
 
 std::string Response::intToString(int value) {

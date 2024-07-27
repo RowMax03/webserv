@@ -4,12 +4,16 @@
 #include <dirent.h>
 #include <string>
 #include <sstream>
+#include <map>
 //#include "ResponseBody.hpp"
 //#include "ResponseHead.hpp"
 #include "../../conf_parser/ServerConfig.hpp"
 #include "../parser/HttpParser.hpp"
 #include "../../error_handler/errorHandler.hpp"
 #include "../../cgi/CGI.hpp"
+#include "../../http/files/FileHandler.hpp"
+#include "../../http/files/UploadHandler.hpp"
+
 class Response {
 
 private:
@@ -33,6 +37,8 @@ public:
     void init();
 
     std::string intToString(int value);
+
+void setMimeType(const std::string& filePath);
 
     std::string serialize();
 };

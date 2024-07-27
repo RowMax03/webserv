@@ -1,7 +1,7 @@
 NAME = webserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror #-std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -g #-std=c++98
 
 SRCS = $(SRC) $(SERVER) $(SOCKET) $(CGI) $(CONFPARSER) $(HTTP_PARSER) $(HTTP_RESPONSE) $(HTTP_STATIC)
 
@@ -38,7 +38,7 @@ HTTP_RESPONSE_FILES = Response.cpp ResponseBody.cpp ResponseHead.cpp
 HTTP_RESPONSE_DIR = $(addprefix $(HTTP_DIR), response/)
 
 HTTP_STATIC = $(addprefix $(HTTP_STATIC_DIR), $(HTTP_STATIC_FILES))
-HTTP_STATIC_FILES = FileHandler.cpp
+HTTP_STATIC_FILES = FileHandler.cpp UploadHandler.cpp
 HTTP_STATIC_DIR = $(addprefix $(HTTP_DIR), files/)
 
 

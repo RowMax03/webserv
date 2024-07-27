@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/23 20:21:39 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:27:09 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,25 @@ ResponseHead &ResponseHead::operator=(const ResponseHead &other) {
 }
 
 ResponseHead::~ResponseHead() {}
+
+void ResponseHead::init() {
+    setStatusCode("200");
+    setStatusMessage("OK");
+
+    std::map <std::string, std::string> headers = _parser.getHeaders();
+    checkLocation();
+    checkRedirect();
+    setConnectionType("keep-alive");
+    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
+    setContentLength("0");
+    setAllow(join(location.methods, ", "));
+    setContentLanguage("");
+    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
+    setLastModified(formatLastModifiedTime(fullPathToFile));
+    setRetryAfter(calculateRetryAfter());
+    setTransferEncoding("");
+    setWwwAuthenticate("");
+}
 
 std::string ResponseHead::serialize() {
     std::ostringstream oss;
@@ -248,12 +267,3 @@ void ResponseHead::setTransferEncoding(const std::string &transferEncoding) { _t
 std::string ResponseHead::getWwwAuthenticate() const { return _wwwAuthenticate; }
 
 void ResponseHead::setWwwAuthenticate(const std::string &wwwAuthenticate) { _wwwAuthenticate = wwwAuthenticate; }
-
-void ResponseHead::setCookie(const std::string &cookie) {
-	_cookie = cookie;
-}
-
-std::string ResponseHead::getCookie() {
-	return _cookie;
-}
-

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:14 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:29:31 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@
 namespace Config {
     class Location : public confBase {
     public:
-        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir(""), auth(false) {}
+        Location() : path(""), redirect_status(0), client_max_body_size(-1) , redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir(""), auth(false){}
 
         Location(const Location &other) : confBase(other), path(other.path),
-                                          redirect_status(other.redirect_status),
+                                          redirect_status(other.redirect_status), client_max_body_size(other.client_max_body_size),
                                           redirect_url(other.redirect_url), root(other.root),
                                           autoindex(other.autoindex), allowCgi(other.allowCgi), index(other.index),
                                           uploadDir(other.uploadDir),
@@ -81,9 +81,11 @@ namespace Config {
                     autoindex = (configValues[1] == "on");
                 } else if (key == "Cgi"){
                     allowCgi = (configValues[1] == "on");
-                }else if (key == "index") {
+                } else if (key == "client_max_body_size") {
+					client_max_body_size = std::atoi(configValues[1].c_str());
+				} else if (key == "index") {
                     index = "/" + removeLeadingSlash(configValues[1]);
-                }else if (key == "upload_dir"){
+                } else if (key == "upload_dir"){
                     uploadDir = "/" + removeLeadingSlash(removeTrailingSlash(configValues[1])) + "/";
                 } else if (key == "allow") {
                     for (size_t i = 1; i < configValues.size(); i++) {
@@ -99,7 +101,6 @@ namespace Config {
         }
 
         ~Location() {}
-
         void print() const {
             std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
                       << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
@@ -113,6 +114,7 @@ namespace Config {
         std::string path;
         std::vector <std::string> methods;
         int redirect_status;
+        int client_max_body_size;
         std::string redirect_url;
         std::string root;
         bool autoindex;

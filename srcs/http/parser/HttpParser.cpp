@@ -6,32 +6,61 @@
 /*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/09 20:51:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/25 18:00:26 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const std::string& request) : _contentLength(0), isCgi(false) {
-	parse(request);
+HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false) {
+	_request = std::istringstream(request);
+	std::cout << "Parser Constructor" << std::endl;
+
+	parse();
 }
 
-HttpParser::~HttpParser() {}
+HttpParser::~HttpParser() {
+
+}
+
+HttpParser::HttpParser(const HttpParser &other) {
+	*this = other;
+}
+
+HttpParser &HttpParser::operator=(const HttpParser &other) {
+	if (this != &other) {
+		_method = other._method;
+		_url = other._url;
+		_scriptName = other._scriptName;
+		_path = other._path;
+		_pathInfo = other._pathInfo;
+		_queryString = other._queryString;
+		_version = other._version;
+		_body = other._body;
+		//_request = other._request;
+		_server = other._server;
+		_contentLength = other._contentLength;
+		_headers = other._headers;
+		isCgi = other.isCgi;
+		std::string requestContent = other._request.str();
+		_request = std::istringstream(requestContent);
+	}
+	return *this;
+}
 
 // parse the raw request into the method, url, version, headers, and body
-void HttpParser::parse(const std::string& raw) {
-	std::istringstream request(raw);
+void HttpParser::parse() {
 	std::string line;
 
-	std::getline(request, line);
+	std::getline(_request, line);
 	if (!line.empty() && line.back() == '\r')
 		line.pop_back();
 	std::istringstream firstLine(line);
 	firstLine >> _method >> _url >> _version;
 	if (firstLine.fail() || !firstLine.eof() || !checkRequestLine())
 		throw std::runtime_error("Invalid request line");
-	while (std::getline(request, line) && line != "\r") {
+	while (std::getline(_request, line) && line != "\r") {
 		std::istringstream headerLine(line);
 		std::string key;
 		std::getline(headerLine, key, ':');
@@ -41,15 +70,26 @@ void HttpParser::parse(const std::string& raw) {
 			throw std::runtime_error("Invalid header line");
 		_headers[key] = trim(value);
 	}
-	if (_headers.find("Content-Length") != _headers.end()) {
-		_contentLength = std::stoi(_headers["Content-Length"]);
-		std::vector<char> _bodyChars(_contentLength);
-		request.read(&_bodyChars[0], _contentLength);
-		if (request.gcount() != _contentLength)
-			throw std::runtime_error("Body length does not match Content-Length header");
-		_body.assign(_bodyChars.begin(), _bodyChars.end());
-	}
+
 	parseUrl();
+}
+
+// update the request string in the parser
+void HttpParser::updateRequest(const std::string& request) {
+	_request.str(request);
+	_request.clear();
+}
+
+void HttpParser::parseBody() {
+	// parse the body of the request
+	if (_headers.find("Content-Length") != _headers.end() && _body.empty()) {
+	_contentLength = std::stoi(_headers["Content-Length"]);
+	std::vector<char> _bodyChars(_contentLength);
+	_request.read(&_bodyChars[0], _contentLength);
+	if (_request.gcount() != _contentLength)
+		throw std::runtime_error("Body length does not match Content-Length header body length: " + std::to_string(_request.gcount()) + " vs " + std::to_string(_contentLength));
+	_body.assign(_bodyChars.begin(), _bodyChars.end());
+	}
 }
 
 // change to also throw an exception instead of just returning false later
@@ -90,22 +130,54 @@ std::vector<std::string> HttpParser::toCgiEnv() const {
 }
 
 void HttpParser::parseUrl() {
+	_url = decodeUrl(_url);
 	std::size_t queryPos = _url.find('?');
 	_path = _url.substr(0, queryPos);
 	if (queryPos != std::string::npos) {
 		_queryString = _url.substr(queryPos + 1);
 	}
-	// maybe change this to a regex or config variable later
-	std::size_t scriptPos = _path.find("/cgi-bin/");
-	if (scriptPos != std::string::npos) {
-		isCgi = true;
-		_scriptName = _path.substr(scriptPos);
+	std::size_t fext = _path.find_last_of('.');
+	std::string extension;
+	if (fext != std::string::npos) {
+		extension = _path.substr(fext + 1);
+	}
+	for (std::vector<std::string>::const_iterator it = _server->cgi.begin(); it != _server->cgi.end(); ++it) {
+		if (*it == extension) {
+			std::cout << "CGI extension found: " << extension << std::endl;
+			isCgi = true;
+			break;
+		}
+	}
+	if (isCgi) {
+		_scriptName = _path.substr(_path.find_last_of('/') + 1);
 		std::size_t _pathInfoPos = _scriptName.find('/');
 		if (_pathInfoPos != std::string::npos) {
 			_pathInfo = _scriptName.substr(_pathInfoPos);
 			_scriptName = _scriptName.substr(0, _pathInfoPos);
 		}
 	}
+}
+
+std::string HttpParser::decodeUrl(const std::string& url) {
+	std::string decoded;
+	for (std::size_t i = 0; i < url.size(); ++i) {
+		if (url[i] == '%' && i + 2 < url.size()) {
+			int value;
+			std::istringstream hex(url.substr(i + 1, 2));
+			hex >> std::hex >> value;
+			if (!hex.fail()) {
+				decoded += static_cast<char>(value);
+				i += 2;
+			}
+			else {
+				decoded += url[i];
+			}
+		}
+		else {
+			decoded += url[i];
+		}
+	}
+	return decoded;
 }
 
 std::string HttpParser::getMethod() const { return _method; }
