@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/23 16:32:33 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:29:40 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@
 class ResponseHead {
 private:
     HttpParser _parser;
-    const Config::Server *_config;
     std::string _header;
     std::string _statusCode;
     std::string _statusMessage;
@@ -43,6 +42,7 @@ private:
 	std::string _cookie;
 
 public:
+std::string ServerName;
     Config::Location location;
     std::string fullPathToFile;
     std::string location_path;
@@ -57,7 +57,7 @@ public:
     ~ResponseHead();
 
     std::string serialize();
-
+	void setDefault();
 
     //utils
 

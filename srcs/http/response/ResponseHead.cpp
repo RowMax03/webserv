@@ -6,37 +6,28 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 17:27:09 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:30:04 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "ResponseHead.hpp"
 
-ResponseHead::ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path,
-                           int numClients) : _parser(_parser), _config(&conf), location_path(location_path),
-                                             numClients(numClients) {
-    setStatusCode("200");
-    setStatusMessage("OK");
-
-    std::map <std::string, std::string> headers = _parser.getHeaders();
-    checkLocation();
-    setConnectionType("keep-alive");
-    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
-    setContentLength("0");
-    setAllow(join(location.methods, ", "));
-    setContentLanguage("");
-    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
-    setLastModified(formatLastModifiedTime(fullPathToFile));
-    setRetryAfter(calculateRetryAfter());
-    setTransferEncoding("");
-    //@todo ( whenn www-authenticate returns base64 'user:password')
-    if(location.auth === true ) { //@todo add controlling for Sessio Cookie thats already exists
-        setStatusCode("401")
-        setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
-    }
-    checkRedirect();
-
+ResponseHead::ResponseHead(){
+        setHeader("");
+        setStatusCode("");
+        setStatusMessage("");
+        setConnectionType("");
+        setContentType("");
+        setContentLength("");
+        setAllow("");
+        setContentLanguage("");
+        setContentLocation("");
+        setLastModified("");
+        setLocation("");
+        setRetryAfter("");
+        setTransferEncoding("");
+        setWwwAuthenticate("");
 }
 
 ResponseHead::ResponseHead(const ResponseHead &other) : _parser(other._parser), _config(other._config),
@@ -53,31 +44,29 @@ ResponseHead &ResponseHead::operator=(const ResponseHead &other) {
 
 ResponseHead::~ResponseHead() {}
 
-void ResponseHead::init() {
+void ResponseHead::setDefault(Config::Location location, HttpParser parser, std::string ServerName, int numClients) {
+	_parser = parser;
+	this.ServerName = ServerName;
     setStatusCode("200");
     setStatusMessage("OK");
-
-    std::map <std::string, std::string> headers = _parser.getHeaders();
+	this.location = location;
     checkLocation();
     checkRedirect();
     setConnectionType("keep-alive");
-    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
     setContentLength("0");
-    setAllow(join(location.methods, ", "));
-    setContentLanguage("");
-    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
+    setAllow(join(this.location.methods, ", "));
+    setContentLocation((_parser.getPath() == location_path ? this.location.index : _parser.getPath()));
     setLastModified(formatLastModifiedTime(fullPathToFile));
     setRetryAfter(calculateRetryAfter());
-    setTransferEncoding("");
-    setWwwAuthenticate("");
-}
+	checkRedirect();
+	}
 
 std::string ResponseHead::serialize() {
     std::ostringstream oss;
     if (!_parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
         oss << _parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
-    if (!_config->server_name.empty())
-        oss << "Server: " << _config->server_name << "\r\n";
+    if (!this.ServerName.empty())
+        oss << "Server: " << this.ServerName << "\r\n";
     if (!getCurrentDate().empty())
         oss << "Date: " << getCurrentDate() << "\r\n";
     if (!getConnectionType().empty())
@@ -112,7 +101,8 @@ std::string ResponseHead::serialize() {
 }
 
 
-//utils
+
+//########################################## utils ##########################################
 
 float ResponseHead::calculateServerLoad() {
     int activeConnections = numClients;
@@ -167,11 +157,10 @@ std::string ResponseHead::intToString(int value) {
 }
 
 
-void ResponseHead::filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it,
+void ResponseHead::filecheck(std::string fullPath,
                              std::string path) {
     std::ifstream file(fullPath.c_str());
     if (file.good()) {
-        location = it->second;
         fullPathToFile = fullPath;
         setLocation(path);
         file.close();
@@ -179,16 +168,15 @@ void ResponseHead::filecheck(std::string fullPath, std::map<std::string, Config:
         return;
 }
 
-void ResponseHead::checkLocation() {
-    std::map<std::string, Config::Location>::const_iterator it = _config->locations.find(location_path);
-    if (it != _config->locations.end()) {
+void ResponseHead::checkLocation(Config::Location location) {
+
         std::string modPath = _parser.getPath();
         if (modPath.find(location_path) == 0)
             modPath.erase(0, location_path.length());
-        std::string fullPath = it->second.root + (_parser.getPath() == location_path ? it->second.index : modPath);
+
+        std::string fullPath = location.root + (_parser.getPath() == location_path ? location.index : modPath);
         std::cout << "fullpath :" << fullPath << std::endl;
-        filecheck(fullPath, it, _parser.getPath());
-    }
+        filecheck(fullPath, location, _parser.getPath());
 }
 
 void ResponseHead::checkRedirect() {

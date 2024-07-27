@@ -11,6 +11,9 @@
 
 struct Login {
     std::string Base64Login;
+	std::string username;
+    std::string password;
+
     // Constructor for easy initialization
     Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
         //@todo user name and password to base64 string (user:password)

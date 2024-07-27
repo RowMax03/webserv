@@ -13,15 +13,20 @@
 #include "../../cgi/CGI.hpp"
 #include "../../http/files/FileHandler.hpp"
 #include "../../http/files/UploadHandler.hpp"
-
+#include "./SessionHandler.hpp"
 class Response {
 
 private:
-    HttpParser _parser;
     const Config::Server *_config;
+	const Config::Location _locations;
     ResponseHead responseHead;
     ResponseBody responseBody;
+	SessionHandler sessionHandler;
+	ErrorHandler errorHandler;
+ long unsigned int clients;
 public:
+    HttpParser Parser;
+
     Response(const HttpParser &parser, const Config::Server &config, std::string path, long unsigned int clients);
 
     Response(const Response &other);

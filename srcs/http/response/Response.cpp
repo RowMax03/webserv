@@ -6,55 +6,44 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 17:26:31 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:31:46 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "Response.hpp"
 
+	//try catch if error than error handler
+	// header shit
+		//construct empty error handler with empty head and body
+		// cathc errorhandler handle error code function
+	//parse request
+		//parse request line
+		//parse headers
+	//getlocation / matchlocation
+    //session handling csrf token throws with bad request if false
+	//session handling auth throws with 401
 
-Response::Response(const HttpParser &parser, const Config::Server &config, std::string path, long unsigned int clients)
-        : _parser(parser), _config(&config), responseHead(parser, config, path, clients),
-          responseBody(parser, config) {
-    ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
-    //@todo login session handler
-    if (errorHandler.isBadRequest() && errorHandler.checkMethod())
-        errorHandler.handleErrorCode("403");
-    if (!errorHandler.checkPath() && responseHead.location.redirect_url.empty())
-        errorHandler.checkMethod();
-    if (_parser.isCgi) { //@todo check if auth and session cokkie is not set
-        // CGI
-        try {
-            CGI cgi(_parser, responseHead.location.root);
-            responseBody.setBody(cgi.run());
-        }
-        catch (const std::exception &e) {
-            std::cerr << e.what() << std::endl;
-            std::string error = e.what();
-            // Error handling, replace with error handler later
-            if (error == "file not found")
-                errorHandler.handleErrorCode("404");
-            else if (error == "file not executable")
-                errorHandler.handleErrorCode("403");
-            else
-                errorHandler.handleErrorCode("500");
-        }
-    } else if((responseHead.location.auth == true //&& @todo add conrtollign for session cokie \
-     )|| responseHead.location.auth == false){ //@todo : content length against client max bodz size in location !!!!!!
-        //@todo if locaiton auth there should be no body set
-        DIR *dir = opendir(responseHead.fullPathToFile.c_str());
-        if (responseHead.location.autoindex && dir != NULL) {
-            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
-            responseBody.setBody(directoryListing);
-            responseHead.setContentLength(intToString(directoryListing.size()));
-            responseHead.setStatusCode("201");
-            responseHead.setStatusMessage("Created");
-            closedir(dir);
-        } else if (responseBody.getBody().empty()) {
-            responseBody.init(responseHead.fullPathToFile);
-        }
-    }
+	//tr catch
+	//update request parser
+
+
+	//body shit
+	//parse body
+
+
+	//switch on request method
+		//hande difrent cases CGI , GET, POST, DELETE
+			//set response head and body
+			//set mime type
+
+	//error checking ?? throw with response code when error checking methods return true
+	//end of funciton next step is to serialize response and pollout
+
+
+Response::Response(const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
+        :_config(&config), sessionHandler(sessionHandler), clients(clients) {
+			ErrorHandler errorHandler(responseHead, responseBody);
 }
 
 Response::Response(const Response &other) : _parser(other._parser), _config(other._config),
@@ -72,6 +61,124 @@ Response &Response::operator=(const Response &other) {
 }
 
 Response::~Response() {}
+
+void Response::recive(const std::string &request) {
+	try {
+		_parser.parse(request);
+	}
+	catch (const std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		errorHandler.handleErrorCode(e);
+	}
+}
+
+void Response::handleHead(){
+	try {
+		_location = _parser->getlocation();
+		responseHead.setDefault(_location, _parser, _config->getServerName(), clients);
+		if (location.auth == true)
+		{
+
+			if(!sessionHandler.checkSession(_parser.getHeaders()["Cookie"])) //@if header access not set
+			{
+				responseHead.setStatusCode("401");
+				responseHead.setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
+				throw std::exception("401");
+			} //@else if header access set
+			//else throw 401 with www authenticat
+		}
+		if (errorHandler.isBadRequest() && errorHandler.checkMethod())
+			throw std::exception("403");
+		if (!errorHandler.checkPath())
+			errorHandler.checkMethod();
+	}
+	catch (const std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		errorHandler.handleErrorCode(e);
+	}
+}
+
+
+
+void Response::handleBody(){
+	try {
+		if(_parser.getMethod() == "POST")
+		{
+			handlePost();
+		} else if (_parser.getMethod() == "GET") {
+			handleGet();
+		} else if (_parser.getMethod() == "DELETE") {
+			handleDelete();
+		} else if (_parser.isCgi) {
+			handleCgi();
+		}else {
+			throw std::exception("405");
+		}
+	}
+	catch (const std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		errorHandler.handleErrorCode(e);
+	}
+}
+
+//##################################################################################################################################
+
+void Response::handlePost(){
+	if (_parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
+		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
+		UploadHandler uploadHandler(_locations.uploadDir , _parser.getHeaders()["Content-Type"], _parser.getBody());
+	}
+}
+
+void Response::handleGet(){
+	DIR *dir = opendir(responseHead.fullPathToFile.c_str());
+	if (responseHead.location.autoindex && dir != NULL) {
+		std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
+		responseBody.setBody(directoryListing);
+		responseHead.setContentLength(intToString(directoryListing.size()));
+		responseHead.setStatusCode("201");
+		responseHead.setStatusMessage("Created");
+		closedir(dir);
+	} else if (responseBody.getBody().empty()) {
+		setMimeType(responseHead.fullPathToFile);
+		responseBody.init(responseHead.fullPathToFile);
+	}
+}
+
+void Response::handleDelete(){
+	FileHandler fileHandler(responseHead.fullPathToFile);
+	fileHandler.deleteFile();
+	responseHead.setStatusCode("204");
+	responseHead.setStatusMessage("No Content");
+}
+
+
+void Response::handleCgi(){
+	CGI cgi(_parser, responseHead.fullPathToFile);
+	responseBody.setBody(cgi.run());
+}
+
+
+std::string Response::serialize() {
+	std::string head;
+	std::string body;
+	if(_parser.getMethod() != "POST" || _parser.getMethod() != "DELETE")
+	{
+		body = responseBody.serialize();
+	}
+	if (!_parser.isCgi) {
+		std::stringstream ss;
+		ss << body.size();
+		std::string length = ss.str();
+		responseHead.setContentLength(length);
+		head = responseHead.serialize();
+	}
+	std::string response = head + body;
+	return response;
+}
+
+
+//##################################################################################################################################
 
 std::string Response::removeTrailingSlash(const std::string &input) {
     if (!input.empty() && input[input.length() - 1] == '/') {
@@ -96,82 +203,6 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
     return result;
 }
 
-void Response::init() {
-	//try catch if error than error handler
-	// header shit
-		//construct empty error handler with empty head and body
-		// cathc errorhandler handle error code function
-	//parse request
-		//parse request line
-		//parse headers
-	//getlocation / matchlocation
-    //session handling csrf token throws with bad request if false
-	//session handling auth throws with 401
-
-
-	//body shit
-	//parse body
-
-
-	//switch on request method
-		//hande difrent cases CGI , GET, POST, DELETE
-			//set response head and body
-			//set mime type
-
-	//error checking ?? throw with response code when error checking methods return true
-	//end of funciton next step is to serialize response and pollout
-
-
-
-
-	responseHead.init();
-    ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
-	if (_parser.getMethod() == "POST" && _parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
-		try {
-		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
-		UploadHandler uploadHandler(responseHead.location.uploadDir , _parser.getHeaders()["Content-Type"], _parser.getBody());
-		}
-		catch (const std::exception &e) {
-			std::cerr << e.what() << std::endl;
-			errorHandler.handleErrorCode("500");
-		}
-	}
-    if (errorHandler.isBadRequest() && errorHandler.checkMethod())
-        errorHandler.handleErrorCode("403");
-    if (!errorHandler.checkPath())
-        errorHandler.checkMethod();
-    if (_parser.isCgi) {
-        // CGI
-        try {
-            CGI cgi(_parser, responseHead.fullPathToFile);
-            responseBody.setBody(cgi.run());
-        }
-        catch (const std::exception &e) {
-            std::cerr << e.what() << std::endl;
-            std::string error = e.what();
-            // Error handling, replace with error handler later
-            if (error == "file not found")
-                errorHandler.handleErrorCode("404");
-            else if (error == "file not executable")
-                errorHandler.handleErrorCode("403");
-            else
-                errorHandler.handleErrorCode("500");
-        }
-    } else {
-        DIR *dir = opendir(responseHead.fullPathToFile.c_str());
-        if (responseHead.location.autoindex && dir != NULL) {
-            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
-            responseBody.setBody(directoryListing);
-            responseHead.setContentLength(intToString(directoryListing.size()));
-            responseHead.setStatusCode("201");
-            responseHead.setStatusMessage("Created");
-            closedir(dir);
-        } else if (responseBody.getBody().empty()) {
-			setMimeType(responseHead.fullPathToFile);
-            responseBody.init(responseHead.fullPathToFile);
-        }
-    }
-}
 
 void Response::setMimeType(const std::string& filePath) {
 	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
@@ -225,13 +256,3 @@ std::string Response::intToString(int value) {
     return ss.str();
 }
 
-std::string Response::serialize() {
-    std::string body = responseBody.serialize();
-    std::stringstream ss;
-    ss << body.size();
-    std::string length = ss.str();
-    responseHead.setContentLength(length);
-    std::string head = responseHead.serialize();
-    std::string response = head + body;
-    return response;
-}
