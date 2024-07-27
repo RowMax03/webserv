@@ -17,8 +17,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <signal.h>
-
-
+#include <cstring>
 #include "../http/parser/HttpParser.hpp"
 
 class CGI

@@ -16,7 +16,46 @@
 
 Response::Response(const HttpParser &parser, const Config::Server &config, std::string path, long unsigned int clients)
         : _parser(parser), _config(&config), responseHead(parser, config, path, clients),
-          responseBody(parser, config) {}
+          responseBody(parser, config) {
+    ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
+    //@todo login session handler
+    if (errorHandler.isBadRequest() && errorHandler.checkMethod())
+        errorHandler.handleErrorCode("403");
+    if (!errorHandler.checkPath() && responseHead.location.redirect_url.empty())
+        errorHandler.checkMethod();
+    if (_parser.isCgi) { //@todo check if auth and session cokkie is not set
+        // CGI
+        try {
+            CGI cgi(_parser, responseHead.location.root);
+            responseBody.setBody(cgi.run());
+        }
+        catch (const std::exception &e) {
+            std::cerr << e.what() << std::endl;
+            std::string error = e.what();
+            // Error handling, replace with error handler later
+            if (error == "file not found")
+                errorHandler.handleErrorCode("404");
+            else if (error == "file not executable")
+                errorHandler.handleErrorCode("403");
+            else
+                errorHandler.handleErrorCode("500");
+        }
+    } else if((responseHead.location.auth == true //&& @todo add conrtollign for session cokie \
+     )|| responseHead.location.auth == false){ //@todo : content length against client max bodz size in location !!!!!!
+        //@todo if locaiton auth there should be no body set
+        DIR *dir = opendir(responseHead.fullPathToFile.c_str());
+        if (responseHead.location.autoindex && dir != NULL) {
+            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
+            responseBody.setBody(directoryListing);
+            responseHead.setContentLength(intToString(directoryListing.size()));
+            responseHead.setStatusCode("201");
+            responseHead.setStatusMessage("Created");
+            closedir(dir);
+        } else if (responseBody.getBody().empty()) {
+            responseBody.init(responseHead.fullPathToFile);
+        }
+    }
+}
 
 Response::Response(const Response &other) : _parser(other._parser), _config(other._config),
                                             responseHead(other.responseHead),
@@ -55,45 +94,6 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
     }
     std::string result = oss.str();
     return result;
-}
-
-void Response::init() {
-    responseHead.init();
-    ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
-    if (errorHandler.isBadRequest() && errorHandler.checkMethod())
-        errorHandler.handleErrorCode("403");
-    if (!errorHandler.checkPath() && responseHead.location.redirect_url.empty())
-        errorHandler.checkMethod();
-    if (_parser.isCgi) {
-        // CGI
-        try {
-            CGI cgi(_parser, responseHead.location.root);
-            responseBody.setBody(cgi.run());
-        }
-        catch (const std::exception &e) {
-            std::cerr << e.what() << std::endl;
-            std::string error = e.what();
-            // Error handling, replace with error handler later
-            if (error == "file not found")
-                errorHandler.handleErrorCode("404");
-            else if (error == "file not executable")
-                errorHandler.handleErrorCode("403");
-            else
-                errorHandler.handleErrorCode("500");
-        }
-    } else { //@todo : content length against client max bodz size in location !!!!!!
-        DIR *dir = opendir(responseHead.fullPathToFile.c_str());
-        if (responseHead.location.autoindex && dir != NULL) {
-            std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
-            responseBody.setBody(directoryListing);
-            responseHead.setContentLength(intToString(directoryListing.size()));
-            responseHead.setStatusCode("201");
-            responseHead.setStatusMessage("Created");
-            closedir(dir);
-        } else if (responseBody.getBody().empty()) {
-            responseBody.init(responseHead.fullPathToFile);
-        }
-    }
 }
 
 std::string Response::intToString(int value) {

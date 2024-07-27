@@ -16,18 +16,26 @@
 ResponseHead::ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path,
                            int numClients) : _parser(_parser), _config(&conf), location_path(location_path),
                                              numClients(numClients) {
-    setStatusCode("");
-    setStatusMessage("");
-    setAllow("");
-    setConnectionType("");
+    setStatusCode("200");
+    setStatusMessage("OK");
+
+    std::map <std::string, std::string> headers = _parser.getHeaders();
+    checkLocation();
+    setConnectionType("keep-alive");
+    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
+    setContentLength("0");
+    setAllow(join(location.methods, ", "));
     setContentLanguage("");
-    setContentLength("");
-    setContentLocation("");
-    setContentType("");
-    setLastModified("");
-    setRetryAfter("");
+    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
+    setLastModified(formatLastModifiedTime(fullPathToFile));
+    setRetryAfter(calculateRetryAfter());
     setTransferEncoding("");
-    setWwwAuthenticate("");
+    //@todo ( whenn www-authenticate returns base64 'user:password')
+    if(location.auth === true ) { //@todo add controlling for Sessio Cookie thats already exists
+        setStatusCode("401")
+        setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
+    }
+    checkRedirect();
 
 }
 
@@ -44,26 +52,6 @@ ResponseHead &ResponseHead::operator=(const ResponseHead &other) {
 }
 
 ResponseHead::~ResponseHead() {}
-
-void ResponseHead::init() {
-    setStatusCode("200");
-    setStatusMessage("OK");
-
-    std::map <std::string, std::string> headers = _parser.getHeaders();
-    checkLocation();
-    setConnectionType("keep-alive");
-    setContentType(headers["Accept"].substr(0, headers["Accept"].find(",")));
-    setContentLength("0");
-    setAllow(join(location.methods, ", "));
-    setContentLanguage("");
-    setContentLocation((_parser.getPath() == location_path ? location.index : _parser.getPath()));
-    setLastModified(formatLastModifiedTime(fullPathToFile));
-    setRetryAfter(calculateRetryAfter());
-    setTransferEncoding("");
-    setWwwAuthenticate("");
-	    checkRedirect();
-
-}
 
 std::string ResponseHead::serialize() {
     std::ostringstream oss;
@@ -93,10 +81,10 @@ std::string ResponseHead::serialize() {
         oss << "Retry-After: " << getRetryAfter() << "\r\n";
     if (!getTransferEncoding().empty())
         oss << "Transfer-Encoding: " << getTransferEncoding() << "\r\n";
-    if (!getWwwAuthenticate().empty())
+    if (!getWwwAuthenticate().empty()) {
         oss << "WWW-Authenticate: " << getWwwAuthenticate() << "\r\n";
-	if (!getCookie().empty()){
-		std::cout << "Debug - Cookie value: " << getCookie() << std::endl;
+    }
+    if (!getCookie().empty()){
 		oss << "Set-Cookie: " << getCookie() << "\r\n";
 	}
     oss << "\r\n";

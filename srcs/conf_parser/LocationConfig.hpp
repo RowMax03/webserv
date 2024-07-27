@@ -22,13 +22,14 @@
 namespace Config {
     class Location : public confBase {
     public:
-        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir("") {}
+        Location() : path(""), redirect_status(0), redirect_url(""), root(""), autoindex(false), allowCgi(false), index(""), uploadDir(""), auth(false) {}
 
         Location(const Location &other) : confBase(other), path(other.path),
                                           redirect_status(other.redirect_status),
                                           redirect_url(other.redirect_url), root(other.root),
                                           autoindex(other.autoindex), allowCgi(other.allowCgi), index(other.index),
-                                          uploadDir(other.uploadDir) {
+                                          uploadDir(other.uploadDir),
+                                          auth(other.auth){
             methods = other.methods;
         }
 
@@ -43,6 +44,7 @@ namespace Config {
                 allowCgi = other.allowCgi;
                 index = other.index;
                 uploadDir = other.uploadDir;
+                auth = other.auth;
             }
             return *this;
         }
@@ -87,7 +89,9 @@ namespace Config {
                     for (size_t i = 1; i < configValues.size(); i++) {
                         methods.push_back(configValues[i]);
                     }
-                } else{
+                } else if (key == "auth"){
+                    auth = (configValues[1] == "on");
+                }else{
                     throw std::invalid_argument("Invalid key");
                 }
             } else
@@ -115,5 +119,6 @@ namespace Config {
         bool allowCgi;
         std::string index;
         std::string uploadDir;
+        bool auth;
     };
 }

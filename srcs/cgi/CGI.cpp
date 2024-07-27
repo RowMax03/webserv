@@ -143,7 +143,8 @@ std::string CGI::handleParentProcess(int inputPipe[2], int outputPipe[2], pid_t 
 	}
 	close(outputPipe[0]);
 	int status;
-	waitpid(pid, &status, 0);
+
+	//waitpid(pid, &status, 0);
 	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
 		return cgi_response;
 	else

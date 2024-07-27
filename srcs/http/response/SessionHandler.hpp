@@ -10,11 +10,11 @@
 #include "../parser/HttpParser.hpp"
 
 struct Login {
-    std::string username;
-    std::string password;
-
+    std::string Base64Login;
     // Constructor for easy initialization
-    Login(const std::string& user, const std::string& pass) : username(user), password(pass) {}
+    Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
+        //@todo user name and password to base64 string (user:password)
+    }
 
     // Equality operator to compare two Login objects
     bool operator==(const Login& other) const {
@@ -29,6 +29,8 @@ private:
     ResponseHead *_responseHead; // Assuming ResponseHead is a defined class
     HttpParser _parser; // Assuming HttpParser is a defined class
     std::map<std::string, std::string> _sessionStorage; // Session storage
+    //@todo add session storage for csrf token
+    //@todo add controlling for csrf token in http parser or reqponse modul bevor prozessing request
 
 public:
     // Default constructor

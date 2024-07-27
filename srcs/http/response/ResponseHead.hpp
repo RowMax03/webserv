@@ -56,8 +56,6 @@ public:
 
     ~ResponseHead();
 
-    void init();
-
     std::string serialize();
 
 
