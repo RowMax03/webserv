@@ -14,11 +14,12 @@
 #include "../../http/files/FileHandler.hpp"
 #include "../../http/files/UploadHandler.hpp"
 #include "./SessionHandler.hpp"
+#include "../files/FileHandler.hpp"
 class Response {
 
 private:
     const Config::Server *_config;
-	const Config::Location _locations;
+	Config::Location _location;
     ResponseHead responseHead;
     ResponseBody responseBody;
 	SessionHandler *sessionHandler;
@@ -32,7 +33,7 @@ public:
     Response &operator=(const Response &other);
     ~Response();
 
-    void receive(const std::string &request);
+    void recive(const std::string &request);
     void handleHead();
     void handleBody();
     std::string serialize();

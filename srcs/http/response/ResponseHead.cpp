@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 19:30:04 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 22:22:27 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,43 +30,31 @@ ResponseHead::ResponseHead(){
         setWwwAuthenticate("");
 }
 
-ResponseHead::ResponseHead(const ResponseHead &other) : _parser(other._parser), _config(other._config),
-                                                        _header(other._header) {}
-
-ResponseHead &ResponseHead::operator=(const ResponseHead &other) {
-    if (this != &other) {
-        _parser = other._parser;
-        _config = other._config;
-        _header = other._header;
-    }
-    return *this;
-}
 
 ResponseHead::~ResponseHead() {}
 
 void ResponseHead::setDefault(Config::Location location, HttpParser parser, std::string ServerName, int numClients) {
-	_parser = parser;
-	this.ServerName = ServerName;
+	this->ServerName = ServerName;
     setStatusCode("200");
     setStatusMessage("OK");
-	this.location = location;
-    checkLocation();
+	this->location = location;
+    checkLocation(location, parser);
     checkRedirect();
     setConnectionType("keep-alive");
     setContentLength("0");
-    setAllow(join(this.location.methods, ", "));
-    setContentLocation((_parser.getPath() == location_path ? this.location.index : _parser.getPath()));
+    setAllow(join(this->location.methods, ", "));
+    setContentLocation((parser.getPath() == location_path ? this->location.index : parser.getPath()));
     setLastModified(formatLastModifiedTime(fullPathToFile));
-    setRetryAfter(calculateRetryAfter());
+    setRetryAfter(calculateRetryAfter(numClients));
 	checkRedirect();
 	}
 
-std::string ResponseHead::serialize() {
+std::string ResponseHead::serialize(HttpParser parser) {
     std::ostringstream oss;
-    if (!_parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
-        oss << _parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
-    if (!this.ServerName.empty())
-        oss << "Server: " << this.ServerName << "\r\n";
+    if (!parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
+        oss << parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
+    if (!this->ServerName.empty())
+        oss << "Server: " << this->ServerName << "\r\n";
     if (!getCurrentDate().empty())
         oss << "Date: " << getCurrentDate() << "\r\n";
     if (!getConnectionType().empty())
@@ -104,15 +92,14 @@ std::string ResponseHead::serialize() {
 
 //########################################## utils ##########################################
 
-float ResponseHead::calculateServerLoad() {
-    int activeConnections = numClients;
+float ResponseHead::calculateServerLoad(int activeConnections) {
     int maxConnections = 100;
     float load = static_cast<float>(activeConnections) / maxConnections;
     return load;
 }
 
-std::string ResponseHead::calculateRetryAfter() {
-    float load = calculateServerLoad();
+std::string ResponseHead::calculateRetryAfter(int activeConnections) {
+    float load = calculateServerLoad(activeConnections);
     int delay;
 
     if (load > 0.75) {
@@ -168,7 +155,7 @@ void ResponseHead::filecheck(std::string fullPath,
         return;
 }
 
-void ResponseHead::checkLocation(Config::Location location) {
+void ResponseHead::checkLocation(Config::Location location, HttpParser _parser) {
 
         std::string modPath = _parser.getPath();
         if (modPath.find(location_path) == 0)
@@ -176,7 +163,7 @@ void ResponseHead::checkLocation(Config::Location location) {
 
         std::string fullPath = location.root + (_parser.getPath() == location_path ? location.index : modPath);
         std::cout << "fullpath :" << fullPath << std::endl;
-        filecheck(fullPath, location, _parser.getPath());
+        filecheck(fullPath, _parser.getPath());
 }
 
 void ResponseHead::checkRedirect() {
@@ -255,3 +242,6 @@ void ResponseHead::setTransferEncoding(const std::string &transferEncoding) { _t
 std::string ResponseHead::getWwwAuthenticate() const { return _wwwAuthenticate; }
 
 void ResponseHead::setWwwAuthenticate(const std::string &wwwAuthenticate) { _wwwAuthenticate = wwwAuthenticate; }
+
+std::string ResponseHead::getCookie() const { return _cookie; }
+void ResponseHead::setCookie(const std::string &cookie) { _cookie = cookie; }

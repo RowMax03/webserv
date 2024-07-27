@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 19:29:40 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 22:23:12 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@
 
 class ResponseHead {
 private:
-    HttpParser _parser;
     std::string _header;
     std::string _statusCode;
     std::string _statusMessage;
@@ -48,22 +47,19 @@ std::string ServerName;
     std::string location_path;
     long unsigned int numClients;
 
-    ResponseHead(const HttpParser &_parser, const Config::Server &conf, std::string location_path, int numClients);
+    ResponseHead();
 
-    ResponseHead(const ResponseHead &other);
-
-    ResponseHead &operator=(const ResponseHead &other);
 
     ~ResponseHead();
 
-    std::string serialize();
-	void setDefault();
+    std::string serialize(HttpParser parser);
+	void setDefault(Config::Location location, HttpParser parser, std::string ServerName, int numClients);
 
     //utils
 
-    float calculateServerLoad();
+    float calculateServerLoad(int activeConnections);
 
-    std::string calculateRetryAfter();
+    std::string calculateRetryAfter(int numClients);
 
     std::string formatLastModifiedTime(const std::string &filePath);
 
@@ -72,9 +68,10 @@ std::string ServerName;
     std::string intToString(int value);
 
 
-    void filecheck(std::string fullPath, std::map<std::string, Config::Location>::const_iterator it, std::string path);
+    void filecheck(std::string fullPath,
+                             std::string path);
 
-    void checkLocation();
+    void checkLocation(Config::Location location, HttpParser _parser);
 
     void checkRedirect();
 
@@ -139,6 +136,6 @@ std::string ServerName;
     void setWwwAuthenticate(const std::string &wwwAuthenticate);
 
 	void setCookie(const std::string &cookie);
-	std::string getCookie();
+	std::string getCookie() const;
 
 };

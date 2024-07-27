@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cstdlib> // For srand, rand
 #include <ctime> // For time
+    static std::string base64_chars ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 #include "ResponseHead.hpp"
 #include "../parser/HttpParser.hpp"
@@ -13,8 +14,6 @@ struct Login {
     std::string Base64Login;
     std::string username;
     std::string password;
-    static const std::string base64_chars;
-
     // Constructor for easy initialization
     Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
         Base64Login = encodeLogin(username, password);
@@ -48,10 +47,7 @@ struct Login {
 };
 
 
-const std::string Login::base64_chars =
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
+
 
 class SessionHandler {
 private:

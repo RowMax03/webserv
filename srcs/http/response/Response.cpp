@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 21:29:29 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 22:24:25 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,46 +40,49 @@
 	//error checking ?? throw with response code when error checking methods return true
 	//end of funciton next step is to serialize response and pollout
 
-
 Response::Response(const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
-        :_config(&config), sessionHandler(&sessionHandler), clients(clients) {
-			ErrorHandler errorHandler(responseHead, responseBody);
+        : _config(&config),
+        sessionHandler(&sessionHandler),
+        errorHandler(responseHead, responseBody, *_config),
+        clients(clients),
+		Parser(config) {
 }
+Response::Response(const Response &other) : _config(other._config),
+                                            sessionHandler(other.sessionHandler),
+											errorHandler(other.errorHandler),
+                                            clients(other.clients),
+											Parser(other.Parser) {}
 
-Response::Response(const Response &other) : _parser(other._parser), _config(other._config),
-                                            responseHead(other.responseHead),
-                                            responseBody(other.responseBody) {}
-
-// Response &Response::operator=(const Response &other) {
-//     // if (this != &other) {
-//     //     _parser = other._parser;
-//     //     _config = other._config;
-//     //     responseHead = other.responseHead;
-//     //     responseBody = other.responseBody;
-//     // }
-//     return *this;
-// }
+ Response &Response::operator=(const Response &other) {
+     if (this != &other) {
+        Parser = other.Parser;
+        _config = other._config;
+        responseHead = other.responseHead;
+        responseBody = other.responseBody;
+     }
+     return *this;
+}
 
 Response::~Response() {}
 
 void Response::recive(const std::string &request) {
 	try {
-		_parser.parse(request);
+		Parser.updateRawRequest(request);
 	}
 	catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
-		errorHandler.handleErrorCode(e);
+		errorHandler.handleErrorCode(e.what());
 	}
 }
 
 void Response::handleHead(){
 	try {
-		_location = _parser->getlocation();
-		responseHead.setDefault(_location, _parser, _config->getServerName(), clients);
-		if (location.auth == true)
+		_location = Parser.getLocation();
+		responseHead.setDefault(_location, Parser, _config->server_name, clients);
+		if (_location.auth == true)
 		{
 
-			if(!sessionHandler.checkSession(_parser.getHeaders()["Cookie"])) //@if header access not set
+			if(!sessionHandler->checkSession(Parser.getHeaders()["Cookie"])) //@if header access not set
 			{
 				responseHead.setStatusCode("401");
 				responseHead.setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
@@ -88,14 +91,11 @@ void Response::handleHead(){
 			//else throw 401 with www authenticat
 			//generateSession
 		}
-		if (errorHandler.isBadRequest() && errorHandler.checkMethod())
-			throw std::runtime_error("403");
-		if (!errorHandler.checkPath())
-			errorHandler.checkMethod();
+
 	}
 	catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
-		errorHandler.handleErrorCode(e);
+		errorHandler.handleErrorCode(e.what());
 	}
 }
 
@@ -103,14 +103,14 @@ void Response::handleHead(){
 
 void Response::handleBody(){
 	try {
-		if(_parser.getMethod() == "POST")
+		if(Parser.getMethod() == "POST")
 		{
 			handlePost();
-		} else if (_parser.getMethod() == "GET") {
+		} else if (Parser.getMethod() == "GET") {
 			handleGet();
-		} else if (_parser.getMethod() == "DELETE") {
+		} else if (Parser.getMethod() == "DELETE") {
 			handleDelete();
-		} else if (_parser.isCgi) {
+		} else if (Parser.isCgi) {
 			handleCgi();
 		}else {
 			throw std::runtime_error("405");
@@ -118,16 +118,16 @@ void Response::handleBody(){
 	}
 	catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
-		errorHandler.handleErrorCode(e);
+		errorHandler.handleErrorCode(e.what());
 	}
 }
 
 //##################################################################################################################################
 
 void Response::handlePost(){
-	if (_parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
+	if (Parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
-		UploadHandler uploadHandler(_locations.uploadDir , _parser.getHeaders()["Content-Type"], _parser.getBody());
+		UploadHandler uploadHandler(_location.uploadDir , Parser.getHeaders()["Content-Type"], Parser.getBody());
 	}
 }
 
@@ -147,15 +147,15 @@ void Response::handleGet(){
 }
 
 void Response::handleDelete(){
-	FileHandler fileHandler(responseHead.fullPathToFile);
-	fileHandler.deleteFile();
-	responseHead.setStatusCode("204");
-	responseHead.setStatusMessage("No Content");
+//	FileHandler fileHandler();
+//	fileHandler.deleteFile(responseHead.fullPathToFile);
+//	responseHead.setStatusCode("204");
+//	responseHead.setStatusMessage("No Content");
 }
 
 
 void Response::handleCgi(){
-	CGI cgi(_parser, responseHead.fullPathToFile);
+	CGI cgi(Parser, responseHead.fullPathToFile);
 	responseBody.setBody(cgi.run());
 }
 
@@ -163,16 +163,16 @@ void Response::handleCgi(){
 std::string Response::serialize() {
 	std::string head;
 	std::string body;
-	if(_parser.getMethod() != "POST" || _parser.getMethod() != "DELETE")
+	if(Parser.getMethod() != "POST" || Parser.getMethod() != "DELETE")
 	{
 		body = responseBody.serialize();
 	}
-	if (!_parser.isCgi) {
+	if (!Parser.isCgi) {
 		std::stringstream ss;
 		ss << body.size();
 		std::string length = ss.str();
 		responseHead.setContentLength(length);
-		head = responseHead.serialize();
+		head = responseHead.serialize(Parser);
 	}
 	std::string response = head + body;
 	return response;
@@ -193,7 +193,7 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
     std::ostringstream oss;
     if ((dir = opendir(path.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            oss << "<a href='" << removeTrailingSlash(_parser.getPath()) << "/" << ent->d_name << "'>"
+            oss << "<a href='" << removeTrailingSlash(Parser.getPath()) << "/" << ent->d_name << "'>"
                 << ent->d_name << "</a>" << "<br>";
         }
         closedir(dir);
