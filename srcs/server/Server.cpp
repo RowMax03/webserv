@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 17:57:49 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 16:36:25 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,7 @@ void Server::pollin(size_t i)
 	int &content_length = client->content_length;
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
+		// Read headers
 		if (request.find("\r\n\r\n") == std::string::npos) {
 			// Headers not fully received, attempt to read more
 			client->pending_request = true;
@@ -133,6 +134,7 @@ void Server::pollin(size_t i)
 			else if (!client->_parser)
 				client->_parser = new HttpParser(request, _conf->servers[client->getServerIndex()]);
 		}
+		// Read body
 		else if (content_length > 0 || isPostRequest(request, content_length))
 		{
 			// Only read body if content_length > 0 and body not yet read

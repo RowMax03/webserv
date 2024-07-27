@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/23 17:05:03 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 16:52:25 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,34 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
 }
 
 void Response::init() {
-    responseHead.init();
+	//try catch if error than error handler 
+	// header shit
+		//construct empty error handler with empty head and body
+		// cathc errorhandler handle error code function
+	//parse request
+		//parse request line
+		//parse headers
+	//getlocation / matchlocation
+    //session handling csrf token throws with bad request if false
+	//session handling auth throws with 401		
+
+
+	//body shit 
+	//parse body
+
+	
+	//switch on request method
+		//hande difrent cases CGI , GET, POST, DELETE
+			//set response head and body
+			//set mime type
+	
+	//error checking ?? throw with response code when error checking methods return true
+	//end of funciton next step is to serialize response and pollout
+
+	
+
+	
+	responseHead.init();
     ErrorHandler errorHandler(_parser, responseHead, responseBody, *_config);
 	if (_parser.getMethod() == "POST" && _parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		try {
