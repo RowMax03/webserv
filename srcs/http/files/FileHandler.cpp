@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   FileHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 19:57:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/21 20:28:41 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:00:46 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,5 @@ std::string FileHandler::readFile(const std::string &path) {
 		file.close();
 		return contents.str();
 	}
-	throw std::runtime_error("file not found");
+	throw std::runtime_error("404");
 }

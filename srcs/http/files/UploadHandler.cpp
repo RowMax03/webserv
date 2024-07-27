@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   UploadHandler.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/13 14:27:52 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 18:07:59 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:01:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void UploadHandler::saveFile(const std::string &filename, const std::string &con
 	std::cout << "Saving file: " << filename << " to: " << _location << std::endl;
 	std::ofstream file(_location + "/" + filename);
 	if (!file.is_open())
-		throw std::runtime_error("Failed to open file for writing");
+		throw std::runtime_error("500");
 	file << content;
 	file.close();
 }

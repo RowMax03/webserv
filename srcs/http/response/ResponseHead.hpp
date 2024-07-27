@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 22:23:12 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 22:49:32 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,8 @@ std::string ServerName;
 
     ~ResponseHead();
 
-    std::string serialize(HttpParser parser);
-	void setDefault(Config::Location location, HttpParser parser, std::string ServerName, int numClients);
+    std::string serialize(HttpParser &parser);
+	void setDefault(Config::Location location, HttpParser &parser, std::string ServerName, int numClients);
 
     //utils
 
@@ -71,7 +71,7 @@ std::string ServerName;
     void filecheck(std::string fullPath,
                              std::string path);
 
-    void checkLocation(Config::Location location, HttpParser _parser);
+    void checkLocation(Config::Location location, HttpParser &_parser);
 
     void checkRedirect();
 

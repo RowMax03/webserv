@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 22:22:27 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:14:11 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ ResponseHead::ResponseHead(){
 
 ResponseHead::~ResponseHead() {}
 
-void ResponseHead::setDefault(Config::Location location, HttpParser parser, std::string ServerName, int numClients) {
+void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std::string ServerName, int numClients) {
 	this->ServerName = ServerName;
     setStatusCode("200");
     setStatusMessage("OK");
@@ -49,7 +49,7 @@ void ResponseHead::setDefault(Config::Location location, HttpParser parser, std:
 	checkRedirect();
 	}
 
-std::string ResponseHead::serialize(HttpParser parser) {
+std::string ResponseHead::serialize(HttpParser &parser) {
     std::ostringstream oss;
     if (!parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
         oss << parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
@@ -152,10 +152,10 @@ void ResponseHead::filecheck(std::string fullPath,
         setLocation(path);
         file.close();
     } else
-        return;
+        throw std::runtime_error("404");
 }
 
-void ResponseHead::checkLocation(Config::Location location, HttpParser _parser) {
+void ResponseHead::checkLocation(Config::Location location, HttpParser &_parser) {
 
         std::string modPath = _parser.getPath();
         if (modPath.find(location_path) == 0)

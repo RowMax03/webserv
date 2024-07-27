@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 22:24:25 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:42:58 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ Response::Response(const Config::Server &config, SessionHandler &sessionHandler,
         errorHandler(responseHead, responseBody, *_config),
         clients(clients),
 		Parser(config) {
+			
 }
 Response::Response(const Response &other) : _config(other._config),
                                             sessionHandler(other.sessionHandler),
@@ -63,7 +64,9 @@ Response::Response(const Response &other) : _config(other._config),
      return *this;
 }
 
-Response::~Response() {}
+Response::~Response() {
+	std::cout << "Response Destructor" << std::endl;
+}
 
 void Response::recive(const std::string &request) {
 	try {
@@ -103,6 +106,7 @@ void Response::handleHead(){
 
 void Response::handleBody(){
 	try {
+		std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
 		if(Parser.getMethod() == "POST")
 		{
 			handlePost();
@@ -163,6 +167,8 @@ void Response::handleCgi(){
 std::string Response::serialize() {
 	std::string head;
 	std::string body;
+	handleHead();
+	handleBody();
 	if(Parser.getMethod() != "POST" || Parser.getMethod() != "DELETE")
 	{
 		body = responseBody.serialize();

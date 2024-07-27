@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/31 23:00:40 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 18:50:15 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:02:32 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,12 +70,12 @@ std::string CGI::run() {
 	int outputPipe[2];
 
 	if (pipe(inputPipe) == -1 || pipe(outputPipe) == -1) {
-		throw std::runtime_error("pipe failed");
+		throw std::runtime_error("500");
 	}
 
 	pid_t pid = fork();
 	if (pid == -1)
-		throw std::runtime_error("fork failed");
+		throw std::runtime_error("500");
 	if (pid == 0)
 		handleChildProcess(inputPipe, outputPipe, _document);
 	else
@@ -90,10 +90,10 @@ std::string CGI::run() {
  */
 void CGI::checkRigths(const std::string &path) {
 	if (access(path.c_str(), F_OK) == -1) {
-		throw std::runtime_error("file not found");
+		throw std::runtime_error("404");
 	}
 	if (access(path.c_str(), X_OK) == -1) {
-		throw std::runtime_error("file not executable");
+		throw std::runtime_error("403");
 	}
 }
 
