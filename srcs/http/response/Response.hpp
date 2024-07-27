@@ -21,9 +21,10 @@ private:
 	const Config::Location _locations;
     ResponseHead responseHead;
     ResponseBody responseBody;
-	SessionHandler sessionHandler;
+	SessionHandler *sessionHandler;
 	ErrorHandler errorHandler;
  long unsigned int clients;
+ std::string body;
 public:
     HttpParser Parser;
 

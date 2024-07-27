@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 19:31:46 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 19:50:45 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@
 
 
 Response::Response(const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
-        :_config(&config), sessionHandler(sessionHandler), clients(clients) {
+        :_config(&config), sessionHandler(&sessionHandler), clients(clients) {
 			ErrorHandler errorHandler(responseHead, responseBody);
 }
 
@@ -83,12 +83,12 @@ void Response::handleHead(){
 			{
 				responseHead.setStatusCode("401");
 				responseHead.setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
-				throw std::exception("401");
+				throw std::runtime_error("401");
 			} //@else if header access set
 			//else throw 401 with www authenticat
 		}
 		if (errorHandler.isBadRequest() && errorHandler.checkMethod())
-			throw std::exception("403");
+			throw std::runtime_error("403");
 		if (!errorHandler.checkPath())
 			errorHandler.checkMethod();
 	}
@@ -112,7 +112,7 @@ void Response::handleBody(){
 		} else if (_parser.isCgi) {
 			handleCgi();
 		}else {
-			throw std::exception("405");
+			throw std::runtime_error("405");
 		}
 	}
 	catch (const std::exception &e) {
@@ -197,6 +197,7 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
         }
         closedir(dir);
     } else {
+		throw std::runtime_error("404");
         oss << "Could not open directory";
     }
     std::string result = oss.str();
