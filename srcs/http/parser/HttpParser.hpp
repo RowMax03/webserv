@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 19:43:01 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:32:01 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ public:
 	HttpParser &operator=(const HttpParser &other);
 	HttpParser(const Config::Server &server);
 	~HttpParser();
-	void matchLocation()
+	void matchLocation();
 	void parseBody();
 	int &getContentLengthToRead();
 	std::vector<std::string> toCgiEnv() const;

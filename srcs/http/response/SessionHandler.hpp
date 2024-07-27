@@ -99,11 +99,12 @@ public:
 
 
 
-void generateSession(const std::string& incomingCreds) {
+std::string generateSession(const std::string& incomingCreds) {
     if (validateCredentials(incomingCreds)) {
         std::string session_id = generateUniqueSessionId();
-		_responseHead->setCookie("session_id=" + session_id + "; Secure; HttpOnly; SameSite=Strict; Max-Age=86400");
-        _sessionStorage[session_id] = username; // Corrected to store string
+
+        _sessionStorage[session_id] = "is existent shit session "; // Corrected to store string
+		return ("session_id=" + session_id + "; Secure; HttpOnly; SameSite=Strict; Max-Age=86400");
     }else
 	{
 		throw std::runtime_error("401");

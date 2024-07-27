@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 19:50:45 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:30:53 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ void Response::handleHead(){
 				throw std::runtime_error("401");
 			} //@else if header access set
 			//else throw 401 with www authenticat
+			//generateSession
 		}
 		if (errorHandler.isBadRequest() && errorHandler.checkMethod())
 			throw std::runtime_error("403");

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:13:35 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:32:56 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <chrono>
 
 #include "../http/parser/HttpParser.hpp"
+#include "../http/response/Response.hpp"
 
 class ASocket
 {
