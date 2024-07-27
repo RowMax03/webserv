@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:14:05 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 20:39:34 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,8 @@
 
 ClientSocket::ClientSocket(int fd, int server_index) : _server_index(server_index)
 {
-	content_length = 0;
 	pending_request = false;
 	this->socket_fd = fd;
-	_parser = NULL;
 	setLastRequest();
 }
 
@@ -30,7 +28,6 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &other)
 {
 	if (this != &other) {
 		_last_request = other._last_request;
-		_request = other._request;
 		_response = other._response;
 		//_server_index = other._server_index;
 	}
@@ -65,7 +62,5 @@ const std::string &ClientSocket::getResponse() const {return _response;}
 std::chrono::time_point<std::chrono::system_clock> ClientSocket::getLastRequest() {return _last_request;}
 int ClientSocket::getServerIndex() const {return _server_index;}
 void ClientSocket::setResponse(const std::string &response) {_response = response;}
-void ClientSocket::setRequest(const std::string &request) {_request += request;}
 void ClientSocket::setLastRequest() {_last_request = std::chrono::system_clock::now();}
-void ClientSocket::clearRequest() {_request.clear();}
 
