@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 21:18:37 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 23:49:28 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,26 +114,27 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	client->setLastRequest();
-	if (!client->pending_request)
-		client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
+	// if (!client->pending_request)
+		// client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
 	int &content_length = client->handler.Parser.getContentLengthToRead();
 	std::cout << "Content length: " << content_length << std::endl;
 	try {
 		if (client->handler.Parser.recivedHeader == false) {
 			client->pending_request = true;
-			client->handler.Parser.updateRawRequest(readHeaders(i));
+			client->handler.recive(readHeaders(i));
 		}
 		else if (client->handler.Parser.readingBody == true)
-			client->handler.Parser.updateRawRequest(readBody(i, content_length));
-		if (content_length == 0 && client->handler.Parser.recivedHeader == true)
+			client->handler.recive(readBody(i, content_length));
+		if (content_length == 0 && client->handler.Parser.recivedHeader == true && client->handler.Parser.readingBody == false)
 			client->pending_request = false;
 	} catch (const std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		removeClient(i);
 		return;
 	}
-	if (!client->pending_request) {
+	if (!client->pending_request || (!client->handler.Parser.readingBody && client->handler.Parser.recivedHeader)) {
 		client->setResponse(client->handler.serialize());
+		client->handler.Parser.reset();
 		_pollfds[i].events = POLLOUT;
 		return;
 	}
@@ -170,7 +171,7 @@ void Server::pollout(size_t i)
 	const char *raw = response.c_str();
 	try {
 		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
-		//std::cout << "Sending: " << response << std::endl;
+		std::cout << "Sending: " << response << std::endl;
 		_pollfds[i].events = POLLIN;
 	}
 	catch (const std::exception &e){
