@@ -13,13 +13,35 @@ struct Login {
     std::string Base64Login;
 	std::string username;
     std::string password;
+	static const std::string base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
 
     // Constructor for easy initialization
     Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
-        //@todo user name and password to base64 string (user:password)
-    }
+		Base64Login = encodeLogin("myUsername", "myPassword");
+		}
+std::string base64_encode(const std::string &in) {
+    std::string out;
 
-    // Equality operator to compare two Login objects
+    int val = 0, valb = -6;
+    for (unsigned char c : in) {
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            out.push_back(base64_chars[(val >> valb) & 0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb > -6) out.push_back(base64_chars[((val << 8) >> (valb + 8)) & 0x3F]);
+    while (out.size() % 4) out.push_back('=');
+    return out;
+}
+
+std::string encodeLogin(const std::string& username, const std::string& password) {
+    return base64_encode(username + ":" + password);
+}
     bool operator==(const Login& other) const {
         return username == other.username && password == other.password;
     }
@@ -28,33 +50,20 @@ struct Login {
 
 class SessionHandler {
 private:
-    std::vector<Login> _logins; // Assuming Login is a defined class
-    ResponseHead *_responseHead; // Assuming ResponseHead is a defined class
-    HttpParser _parser; // Assuming HttpParser is a defined class
-    std::map<std::string, std::string> _sessionStorage; // Session storage
-    //@todo add session storage for csrf token
-    //@todo add controlling for csrf token in http parser or reqponse modul bevor prozessing request
+    std::vector<Login> _logins;
+    std::map<std::string, std::string> _sessionStorage;
+
 
 public:
     // Default constructor
-  SessionHandler(ResponseHead &responseHead, HttpParser parser)
-    : _responseHead(&responseHead), _parser(parser) {
+  SessionHandler() {
         _logins.push_back(Login("user1", "password1"));
         _logins.push_back(Login("user2", "password2"));
-		    std::cout << "SessionHandler constructor" << std::endl;
-    std::string cookie = _parser.getHeaders()["Cookie"]; // Ensure getHeader is correctly named
-    if(cookie != "") {
-        checkSession(); // Ensure this method is declared and defined
-    } else {
-        std::map<std::string, std::string> body = parseBody(_parser.getBody());
-std::cout << "body: " << body["name"] << std::endl;
-        generateSession(body["name"], body["password"]); // Ensure this method is declared and defined
-    }
 }
 
 // Corrected copy constructor
 SessionHandler(const SessionHandler& other)
-    : _responseHead(other._responseHead), _parser(other._parser), _sessionStorage(other._sessionStorage) {
+    : _sessionStorage(other._sessionStorage) {
     // Copy constructor logic here
 }
 
@@ -82,29 +91,40 @@ std::map<std::string, std::string> parseBody(const std::string& body) {
     SessionHandler& operator=(const SessionHandler& other) {
         if (this != &other) {
             _sessionStorage = other._sessionStorage;
-            _responseHead = other._responseHead;
-            _parser = other._parser;
         }
         return *this;
     }
 
-void generateSession(const std::string& username, const std::string& password) {
-    Login login(username, password);
-    if (loginExists(login)) {
+
+
+
+void generateSession(const std::string& incomingCreds) {
+    if (validateCredentials(incomingCreds)) {
         std::string session_id = generateUniqueSessionId();
-		_responseHead->setCookie("session_id=" + session_id);
+		_responseHead->setCookie("session_id=" + session_id + "; Secure; HttpOnly; SameSite=Strict; Max-Age=86400");
         _sessionStorage[session_id] = username; // Corrected to store string
-    }
+    }else
+	{
+		throw std::runtime_error("401");
+	}
 }
-bool loginExists(const Login& login) {
-    for (std::vector<Login>::const_iterator it = _logins.begin(); it != _logins.end(); ++it) {
-        if (*it == login) {
-            return true;
+    bool validateCredentials(const std::string& incomingCreds) {
+        for (const auto& login : _logins) {
+            if (login.encodedCredentials == incomingCreds) {
+                return true; // Credentials are valid
+            }
         }
+        return false; // Credentials are invalid
     }
-    return false;
-}
- void checkSession() {
+
+ bool checkSession(std::string cookie) {
+	std::string session_id = cookie.substr(cookie.find('=') + 1);
+	if (_sessionStorage.find(session_id) != _sessionStorage.end()) {
+		return true;
+	} else {
+		return false;
+	}
+	return false;
  }
 
     // Destructor
