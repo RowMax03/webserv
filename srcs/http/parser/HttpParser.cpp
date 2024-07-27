@@ -3,18 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 18:00:26 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:47:38 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const std::string& request, const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false) {
-	_request = std::istringstream(request);
+HttpParser::HttpParser(const Config::Server &server) :_server(&server), _contentLength(0) , isCgi(false) {
 	std::cout << "Parser Constructor" << std::endl;
 
 	parse();
@@ -47,6 +46,10 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 		_request = std::istringstream(requestContent);
 	}
 	return *this;
+}
+
+void HttpParser::updateRawRequest(const std::string& request) {
+	_rawRequest += request;
 }
 
 // parse the raw request into the method, url, version, headers, and body

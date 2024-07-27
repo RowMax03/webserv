@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/25 17:39:42 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 17:47:06 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class HttpParser
 {
 private:
 	std::map<std::string, std::string> _headers;
+	std::string _rawRequest;
 	std::string _method;
 	std::string _url;
 	std::string _scriptName;
@@ -43,7 +44,7 @@ private:
 public:
 	HttpParser(const HttpParser &other);
 	HttpParser &operator=(const HttpParser &other);
-	HttpParser(const std::string& request, const Config::Server &server);
+	HttpParser(const Config::Server &server);
 	~HttpParser();
 	void parseBody();
 	std::vector<std::string> toCgiEnv() const;
@@ -55,5 +56,6 @@ public:
 	std::string getScriptName() const;
 	std::map<std::string, std::string> getHeaders() const;
 	void updateRequest(const std::string& request);
+	void updateRawRequest(const std::string& request);
 	bool isCgi;
 };
