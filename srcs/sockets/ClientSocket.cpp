@@ -6,20 +6,21 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 18:34:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:39:34 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:20:42 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Socket.hpp"
 
-ClientSocket::ClientSocket(int fd, int server_index) : _server_index(server_index)
+ClientSocket::ClientSocket(int fd, int server_index, const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
+: _server_index(server_index) , handler(Response(config, sessionHandler, clients))
 {
 	pending_request = false;
 	this->socket_fd = fd;
 	setLastRequest();
 }
 
-ClientSocket::ClientSocket(const ClientSocket &other) : _server_index(other._server_index)
+ClientSocket::ClientSocket(const ClientSocket &other) : _server_index(other._server_index) , handler(other.handler)
 {
 	*this = other;
 }

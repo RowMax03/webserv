@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:32:01 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:45:20 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <map>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
 #include "../../conf_parser/ConfigParser.hpp"
 
 class HttpParser
@@ -33,7 +34,7 @@ private:
 	std::string _version;
 	std::string _body;
 	std::istringstream _request;
-	const Config::Server &_server;
+	const Config::Server *_server;
 	Config::Location _location;
 	int _contentLength;
 	int _contentLengthToRead;

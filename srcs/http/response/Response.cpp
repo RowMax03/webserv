@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 20:30:53 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:29:29 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,15 +50,15 @@ Response::Response(const Response &other) : _parser(other._parser), _config(othe
                                             responseHead(other.responseHead),
                                             responseBody(other.responseBody) {}
 
-Response &Response::operator=(const Response &other) {
-    if (this != &other) {
-        _parser = other._parser;
-        _config = other._config;
-        responseHead = other.responseHead;
-        responseBody = other.responseBody;
-    }
-    return *this;
-}
+// Response &Response::operator=(const Response &other) {
+//     // if (this != &other) {
+//     //     _parser = other._parser;
+//     //     _config = other._config;
+//     //     responseHead = other.responseHead;
+//     //     responseBody = other.responseBody;
+//     // }
+//     return *this;
+// }
 
 Response::~Response() {}
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:03 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:29:36 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,16 @@ public:
     ErrorHandler(const ErrorHandler& other)
             : _parser(other._parser), _responseHead(other._responseHead), _responseBody(other._responseBody), _config(other._config)  {}
 
-    ErrorHandler& operator=(const ErrorHandler& other) {
-        if (this != &other) {
-            _parser = other._parser;
-            _responseHead = other._responseHead;
-            _responseBody = other._responseBody;
-            _config = other._config;
-        }
-        return *this;
-    }
+    // ErrorHandler& operator=(const ErrorHandler& other) {
+    //     // if (this != &other) {
+    //     //     _parser = other._parser;
+    //     //     _responseHead = other._responseHead;
+    //     //     _responseBody = other._responseBody;
+    //     //     _config = other._config;
+    //     // }
+	// 	*this = other;
+    //     // return *this;
+    // }
 
     ~ErrorHandler() {}
 

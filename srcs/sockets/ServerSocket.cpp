@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerSocket.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:46:20 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/06/17 20:19:06 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:22:06 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void ServerSocket::bind_socket()
  *
  * @return The file descriptor of the new socket.
  */
-ClientSocket *ServerSocket::accept_socket(const int i)
+ClientSocket *ServerSocket::accept_socket(const int i, const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients)
 {
 	int new_socket;
 	int addrlen = sizeof(this->address);
@@ -76,7 +76,7 @@ ClientSocket *ServerSocket::accept_socket(const int i)
 		throw std::runtime_error("fcntl failed");
 	}
 
-	return new ClientSocket(new_socket, i);
+	return new ClientSocket(new_socket, i, config, sessionHandler, clients);
 }
 
 /**

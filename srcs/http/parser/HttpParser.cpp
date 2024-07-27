@@ -6,14 +6,14 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 19:45:47 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:46:22 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpParser.hpp"
 #include <iostream>
 
-HttpParser::HttpParser(const Config::Server &server) :_server(server), _contentLength(0) , isCgi(false), recivedHeader(false), readingBody(false) {
+HttpParser::HttpParser(const Config::Server &server) : _server(&server), _contentLength(0) , recivedHeader(false), readingBody(false), isCgi(false) {
 	std::cout << "Parser Constructor" << std::endl;
 }
 
@@ -41,7 +41,8 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 		_headers = other._headers;
 		isCgi = other.isCgi;
 		std::string requestContent = other._request.str();
-		_request = std::istringstream(requestContent);
+		_request.clear();
+		_request.str(requestContent);
 	}
 	return *this;
 }
@@ -50,7 +51,7 @@ void HttpParser::updateRawRequest(const std::string& request) {
 	_rawRequest += request;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
-		_request = std::istringstream(_rawRequest);
+		updateRequest(_rawRequest);
 		parse();
 	}
 	if (recivedHeader && readingBody) {
@@ -92,9 +93,10 @@ void HttpParser::parse() {
 // match the location block to the request
 void HttpParser::matchLocation() {
 	std::string path = _path;
+	std::string longest_match;
 	if (path.empty())
 		path = "/";
-	std::map <std::string, Location> locations = _server.locations;
+	std::map <std::string, Config::Location> locations = _server->locations;
 	for (std::map<std::string, Config::Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
 		const std::string& location_path = it->first;
 		if (path.compare(0, location_path.size(), location_path) == 0 &&
@@ -106,11 +108,11 @@ void HttpParser::matchLocation() {
 }
 
 void HttpParser::validateHeader() {
-	if (_location.methods.find(_method) == _location.methods.end())
+	if (std::find(_location.methods.begin(), _location.methods.end(), _method) == _location.methods.end())
 		throw std::runtime_error("405");
 	if (_location.client_max_body_size != -1 && _contentLength > _location.client_max_body_size)
 		throw std::runtime_error("413");
-	if (_method = "POST" && _contentLength > 0)
+	if (_method == "POST" && _contentLength > 0)
 	{
 		readingBody = true;
 		size_t endOfHeader = _rawRequest.find("\r\n\r\n");

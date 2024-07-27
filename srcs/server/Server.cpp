@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:17:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:18:37 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ int Server::Start()
 			}
 			if (i < _server_count && _pollfds[i].revents & POLLIN) {
 				std::cout << "New connection for server i: " << i << std::endl;
-				addClient(_servers[i]->accept_socket(i));
+				addClient(_servers[i]->accept_socket(i, _conf->servers[i], _sessionHandler, _clients.size()));
 			}
 			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
 				std::cout << "Client ready to read at i: " << i << std::endl;

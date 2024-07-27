@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Socket.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 16:15:15 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 20:32:56 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/27 21:19:07 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ class ClientSocket : public ASocket
 		void setResponse(const std::string &response);
 		void setRequest(const std::string &request);
 		void clearRequest();
-		ClientSocket(int fd, int server_index);
+		ClientSocket(int fd, int server_index, const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients);
 		ClientSocket(const ClientSocket &other);
 		ClientSocket &operator=(const ClientSocket &other);
 		int read_socket(void *buf, size_t len);
@@ -66,7 +66,7 @@ class ServerSocket : public ASocket
 	public:
 		ServerSocket(int domain, int type, int protocol, u_long interface, int port);
 		void listen_socket(int backlog);
-		ClientSocket *accept_socket(const int i);
+		ClientSocket *accept_socket(const int i, const Config::Server &config, SessionHandler &sessionHandler, long unsigned int clients);
 		struct sockaddr_in getAddress();
 	private:
 		struct sockaddr_in address;
