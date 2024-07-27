@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 23:49:54 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 01:20:07 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,16 +49,16 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 
 void HttpParser::updateRawRequest(const std::string& request) {
 	_rawRequest += request;
-	std::cout << "Raw Request: " << _rawRequest << std::endl;
+	// std::cout << "Raw Request: " << _rawRequest << std::endl;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
-		updateRequest(_rawRequest);
+		updateRequest(request);
 		parse();
 	}
 	if (recivedHeader && readingBody) {
 		if (_contentLengthToRead <= 0) {
 			readingBody = false;
-			updateRequest(_rawRequest);
+			updateRequest(request);
 			parseBody();
 		}
 	}
@@ -124,20 +124,19 @@ void HttpParser::validateHeader() {
 	}
 }
 
-// update the request string in the parser
 void HttpParser::updateRequest(const std::string& request) {
-	_request.str(request);
-	_request.clear();
+	_request << request;
 }
 
 void HttpParser::parseBody() {
 	// parse the body of the request
+	std::istringstream bodyStream(_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4));
 	if (_body.empty()) {
 	std::vector<char> _bodyChars(_contentLength);
-	_request.read(&_bodyChars[0], _contentLength);
-	if (_request.gcount() != _contentLength)
+	bodyStream.read(&_bodyChars[0], _contentLength);
+	if (bodyStream.gcount() != _contentLength)
 	{
-		std::cout << "Body length does not match Content-Length header body length: " << _request.gcount() << " vs " << _contentLength << std::endl;
+		std::cout << "Body length does not match Content-Length header body length: " << bodyStream.gcount() << " vs " << _contentLength << std::endl;
 		throw std::runtime_error("400");
 	}
 	_body.assign(_bodyChars.begin(), _bodyChars.end());

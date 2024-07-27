@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 23:49:28 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 00:21:43 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ void Server::pollin(size_t i)
 		_pollfds[i].events = POLLOUT;
 		return;
 	}
-	std::cout << "Request not fully received" << std::endl;
+	std::cout << "Request not fully received, conent length left: " << content_length << std::endl;
 }
 
 // Function to read headers and return the headers as a string

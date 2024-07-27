@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 23:14:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 01:08:05 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ ResponseHead::~ResponseHead() {}
 
 void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std::string ServerName, int numClients) {
 	this->ServerName = ServerName;
+	location_path = location.path;
     setStatusCode("200");
     setStatusMessage("OK");
 	this->location = location;
@@ -43,7 +44,10 @@ void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std
     setConnectionType("keep-alive");
     setContentLength("0");
     setAllow(join(this->location.methods, ", "));
-    setContentLocation((parser.getPath() == location_path ? this->location.index : parser.getPath()));
+	std::string modPath = parser.getPath();
+        if (modPath.find(location_path) == 0)
+            modPath.erase(0, location_path.length());
+    setContentLocation((parser.getPath() == location_path ? this->location.index : modPath));
     setLastModified(formatLastModifiedTime(fullPathToFile));
     setRetryAfter(calculateRetryAfter(numClients));
 	checkRedirect();
@@ -155,15 +159,15 @@ void ResponseHead::filecheck(std::string fullPath,
         throw std::runtime_error("404");
 }
 
-void ResponseHead::checkLocation(Config::Location location, HttpParser &_parser) {
+void ResponseHead::checkLocation(Config::Location location, HttpParser &parser) {
 
-        std::string modPath = _parser.getPath();
+        std::string modPath = parser.getPath();
         if (modPath.find(location_path) == 0)
             modPath.erase(0, location_path.length());
 
-        std::string fullPath = location.root + (_parser.getPath() == location_path ? location.index : modPath);
+        std::string fullPath = location.root + (parser.getPath() == location_path ? location.index : modPath);
         std::cout << "fullpath :" << fullPath << std::endl;
-        filecheck(fullPath, _parser.getPath());
+        filecheck(fullPath, parser.getPath());
 }
 
 void ResponseHead::checkRedirect() {

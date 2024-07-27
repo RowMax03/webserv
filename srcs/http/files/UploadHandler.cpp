@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/13 14:27:52 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 23:01:00 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 00:23:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void UploadHandler::parseBody()
 	size_t end = _body.find(end_boundary);
 	std::cout << "boundary: " << boundary << std::endl;
 	std::cout << "end_boundary: " << end_boundary << std::endl;
-
+	
 	while (start != std::string::npos && end != std::string::npos)
 	{
 		std::string part = _body.substr(start + boundary.length(), end - start - boundary.length());

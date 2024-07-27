@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:22:23 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/23 16:36:52 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/28 00:04:52 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 int main()
 {
 	//relative Path from Project root
-    Config::Parser config("srcs/webserv.conf");
+    Config::Parser config("srcs/conf_parser/config.template.conf");
     for (size_t i=0; config.servers.size() > i; i++) {
         config.servers[i].validate();
         std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:56:39 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/27 23:50:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 00:47:24 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ private:
 	std::string _queryString;
 	std::string _version;
 	std::string _body;
-	std::istringstream _request;
+	std::stringstream _request;
 	const Config::Server *_server;
 	Config::Location _location;
 	int _contentLength;
