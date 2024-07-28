@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:32 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:32 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/28 16:16:47 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,18 @@ namespace Config {
     }
 
     Parser::Parser(const Parser &other)
-            : _server(new Server(*other._server)) {}
+            : _server( Server(other._server)) {}
 
     Parser &Parser::operator=(const Parser &other) {
         if (this != &other) {
-            delete _server;
-            _server = new Server(*other._server);
+            // delete _server;
+            _server =  Server(other._server);
         }
         return *this;
     }
 
     Parser::~Parser() {
-        delete _server;
+        // delete _server;
     }
 
 
@@ -62,31 +62,31 @@ namespace Config {
             }
             if (strLine.find("server ") != std::string::npos) {
                 boolVarServer = true;
-                _server = new Server;
+                _server =  Server();
                 continue;
             }
             if (strLine.find("location ") != std::string::npos) {
-                _location = new Location;
+                _location =  Location();
                 boolVarLocation = true;
             }
 
             if (boolVarServer && !boolVarLocation && strLine[0] != '}') {
-                _server->setConfigValue(tokenize(strLine, " "));
+                _server.setConfigValue(tokenize(strLine, " "));
             }
 
             if (boolVarServer && boolVarLocation && strLine[0] != '}') {
-                _location->setConfigValue(tokenize(strLine, " "));
+                _location.setConfigValue(tokenize(strLine, " "));
             }
 
             if (strLine.find("}") != std::string::npos && boolVarLocation && boolVarServer) {
                 boolVarLocation = false;
-                _server->locations[_location->path] = *_location;
-                delete _location;
+                _server.locations[_location.path] = _location;
+                // delete _location;
                 continue;
             }
             if (strLine.find("}") != std::string::npos && boolVarServer) {
                 boolVarServer = false;
-                servers.push_back(*_server);
+                servers.push_back(_server);
             }
         }
     }
