@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 00:21:43 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 21:06:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.s
 	_sessionHandler = SessionHandler();
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
-		_servers[i]->listen_socket(5);
+		_servers[i]->listen_socket(1024);
 		_pollfds.push_back((pollfd){_servers[i]->getFD(), POLLIN, 0});
 		for (std::map<std::string, Config::Location>::const_iterator it = conf.servers[i].locations.begin(); it != conf.servers[i].locations.end(); ++it) {
 			_locations[it->first] = (new LocationHandler(it->second, i));
@@ -92,15 +92,15 @@ int Server::Start()
 				continue;
 			}
 			if (i < _server_count && _pollfds[i].revents & POLLIN) {
-				std::cout << "New connection for server i: " << i << std::endl;
+				// std::cout << "New connection for server i: " << i << std::endl;
 				addClient(_servers[i]->accept_socket(i, _conf->servers[i], _sessionHandler, _clients.size()));
 			}
 			else if (_pollfds[i].revents == POLLIN) { // ClientSocket is ready to read
-				std::cout << "Client ready to read at i: " << i << std::endl;
+				// std::cout << "Client ready to read at i: " << i << std::endl;
 				pollin(i);
 			}
 			else if (_pollfds[i].revents == POLLOUT) { // ClientSocket is ready to write
-				std::cout << "Client ready to write at i: " << i << std::endl;
+				// std::cout << "Client ready to write at i: " << i << std::endl;
 				pollout(i);
 			}
 			if (i > _server_count - 1)
@@ -117,7 +117,7 @@ void Server::pollin(size_t i)
 	// if (!client->pending_request)
 		// client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
 	int &content_length = client->handler.Parser.getContentLengthToRead();
-	std::cout << "Content length: " << content_length << std::endl;
+	// std::cout << "Content length: " << content_length << std::endl;
 	try {
 		if (client->handler.Parser.recivedHeader == false) {
 			client->pending_request = true;
@@ -146,7 +146,7 @@ std::string Server::readHeaders(size_t i) {
 	std::string headers;
 	std::vector<char> buffer(MAX_BUFFER); // Use std::vector for automatic memory management
 	int bytes_read = _clients[i - _server_count]->read_socket(buffer.data(), MAX_BUFFER);
-	std::cout << "Bytes read: " << bytes_read << std::endl;
+	// std::cout << "Bytes read: " << bytes_read << std::endl;
 	if (bytes_read > 0)
 		headers.append(buffer.data(), bytes_read); // Append only the bytes that were actually read
 	return headers;
@@ -171,7 +171,7 @@ void Server::pollout(size_t i)
 	const char *raw = response.c_str();
 	try {
 		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
-		std::cout << "Sending: " << response << std::endl;
+		// std::cout << "Sending: " << response << std::endl;
 		_pollfds[i].events = POLLIN;
 	}
 	catch (const std::exception &e){

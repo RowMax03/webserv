@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 01:08:05 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 20:56:33 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,7 @@ void ResponseHead::checkLocation(Config::Location location, HttpParser &parser) 
             modPath.erase(0, location_path.length());
 
         std::string fullPath = location.root + (parser.getPath() == location_path ? location.index : modPath);
-        std::cout << "fullpath :" << fullPath << std::endl;
+        // std::cout << "fullpath :" << fullPath << std::endl;
         filecheck(fullPath, parser.getPath());
 }
 

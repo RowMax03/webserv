@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 23:42:58 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 20:58:27 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ Response::Response(const Response &other) : _config(other._config),
 }
 
 Response::~Response() {
-	std::cout << "Response Destructor" << std::endl;
+	// std::cout << "Response Destructor" << std::endl;
 }
 
 void Response::recive(const std::string &request) {
@@ -79,6 +79,7 @@ void Response::recive(const std::string &request) {
 }
 
 void Response::handleHead(){
+	responseBody.setBody("");
 	try {
 		_location = Parser.getLocation();
 		responseHead.setDefault(_location, Parser, _config->server_name, clients);
@@ -106,7 +107,7 @@ void Response::handleHead(){
 
 void Response::handleBody(){
 	try {
-		std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
+		// std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
 		if(Parser.getMethod() == "POST")
 		{
 			handlePost();
