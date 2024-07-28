@@ -14,7 +14,6 @@ struct Login {
     std::string Base64Login;
     std::string username;
     std::string password;
-    // Constructor for easy initialization
     Login(const std::string& user, const std::string& pass) : username(user), password(pass) {
         Base64Login = encodeLogin(username, password);
     }
@@ -56,7 +55,6 @@ private:
 
 
 public:
-    // Default constructor
     SessionHandler() {
         _logins.push_back(Login("user1", "password1"));
         _logins.push_back(Login("user2", "password2"));
@@ -66,7 +64,6 @@ public:
         : _logins(other._logins), _sessionStorage(other._sessionStorage) {
     }
 
-// Corrected definition of parseBody without extra qualification
     std::map<std::string, std::string> parseBody(const std::string& body) {
         std::map<std::string, std::string> parsedBody;
         std::istringstream bodyStream(body);
@@ -83,7 +80,6 @@ public:
 
         return parsedBody;
     }
-    // Copy assignment operator
     SessionHandler& operator=(const SessionHandler& other) {
         if (this != &other) {
             _logins = other._logins;
@@ -99,7 +95,7 @@ std::string generateSession(const std::string& incomingCreds) {
     if (validateCredentials(incomingCreds)) {
         std::string session_id = generateUniqueSessionId();
 
-        _sessionStorage[session_id] = "is existent shit session "; // Corrected to store string
+        _sessionStorage[session_id] = "is existent shit session ";
 		return ("session_id=" + session_id + "; Secure; HttpOnly; SameSite=Strict; Max-Age=86400");
     }else
 	{
@@ -110,10 +106,10 @@ std::string generateSession(const std::string& incomingCreds) {
     bool validateCredentials(const std::string& incomingCreds) {
         for (size_t i = 0; i < _logins.size(); ++i) {
             if (_logins[i].Base64Login == incomingCreds) {
-                return true; // Credentials are valid
+                return true;
             }
         }
-        return false; // Credentials are invalid
+        return false;
     }
 
  bool checkSession(std::string cookie) {
@@ -126,14 +122,20 @@ std::string generateSession(const std::string& incomingCreds) {
 	return false;
  }
 
-    // Destructor
+bool deleteSession(std::string cookie) {
+    std::string session_id = cookie.substr(cookie.find('=') + 1);
+    if (_sessionStorage.find(session_id) != _sessionStorage.end()) {
+        _sessionStorage.erase(session_id);
+        return true;
+    } else {
+        return false;
+    }
+}
 ~SessionHandler() {
-    // Explicit destructor logic here (if necessary)
 }
     std::string generateUniqueSessionId() {
         std::stringstream ss;
-        ss << time(nullptr) << rand(); // Simple unique ID generation
+        ss << time(nullptr) << rand();
         return ss.str();
     }
-    // Additional member functions here
 };

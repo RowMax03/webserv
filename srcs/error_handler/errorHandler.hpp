@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 21:52:57 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/28 20:04:08 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ public:
         } else {
             _responseHead.setStatusCode("418");
             _responseHead.setStatusMessage("im a tea pot");
+			setErrorPage();
         }
     }
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 01:08:05 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 19:40:15 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ ResponseHead::ResponseHead(){
         setRetryAfter("");
         setTransferEncoding("");
         setWwwAuthenticate("");
+		setCookie("");
 }
 
 
@@ -51,6 +52,8 @@ void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std
     setLastModified(formatLastModifiedTime(fullPathToFile));
     setRetryAfter(calculateRetryAfter(numClients));
 	checkRedirect();
+	setCookie("");
+
 	}
 
 std::string ResponseHead::serialize(HttpParser &parser) {

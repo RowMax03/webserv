@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 01:20:07 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 19:57:50 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 
 void HttpParser::updateRawRequest(const std::string& request) {
 	_rawRequest += request;
-	// std::cout << "Raw Request: " << _rawRequest << std::endl;
+	std::cout << "Raw Request: " << _rawRequest << std::endl;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
 		updateRequest(request);
@@ -58,7 +58,7 @@ void HttpParser::updateRawRequest(const std::string& request) {
 	if (recivedHeader && readingBody) {
 		if (_contentLengthToRead <= 0) {
 			readingBody = false;
-			updateRequest(request);
+			//updateRequest(request);
 			parseBody();
 		}
 	}
@@ -125,7 +125,8 @@ void HttpParser::validateHeader() {
 }
 
 void HttpParser::updateRequest(const std::string& request) {
-	_request << request;
+	_request.clear();
+	_request.str(request);
 }
 
 void HttpParser::parseBody() {
