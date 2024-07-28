@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 20:58:27 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/28 21:32:48 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,8 @@ void Response::handlePost(){
 	if (Parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
 		UploadHandler uploadHandler(_location.uploadDir , Parser.getHeaders()["Content-Type"], Parser.getBody());
+		responseHead.setStatusCode("201");
+		responseHead.setStatusMessage("Created");
 	}
 }
 
