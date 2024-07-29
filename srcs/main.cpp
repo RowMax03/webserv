@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:22:23 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 00:04:52 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 15:29:12 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 int main()
 {
 	//relative Path from Project root
-    Config::Parser config("srcs/conf_parser/config.template.conf");
+    Config::Parser config("tester.conf");
     for (size_t i=0; config.servers.size() > i; i++) {
         config.servers[i].validate();
         std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;

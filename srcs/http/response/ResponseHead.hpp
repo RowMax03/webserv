@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:40 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 22:49:32 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 17:52:52 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ std::string ServerName;
     std::string intToString(int value);
 
 
-    void filecheck(std::string fullPath,
+    bool filecheck(std::string fullPath,
                              std::string path);
 
     void checkLocation(Config::Location location, HttpParser &_parser);

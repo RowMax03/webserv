@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseHead.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 19:40:15 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:04:14 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std
 	this->location = location;
     checkLocation(location, parser);
     checkRedirect();
-    setConnectionType("keep-alive");
+    setConnectionType("close");
     setContentLength("0");
     setAllow(join(this->location.methods, ", "));
 	std::string modPath = parser.getPath();
@@ -58,8 +58,8 @@ void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std
 
 std::string ResponseHead::serialize(HttpParser &parser) {
     std::ostringstream oss;
-    if (!parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
-        oss << parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
+	std::string version = parser.getVersion() == "" ? "HTTP/1.1" : parser.getVersion();
+        oss << version << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
     if (!this->ServerName.empty())
         oss << "Server: " << this->ServerName << "\r\n";
     if (!getCurrentDate().empty())
@@ -151,15 +151,16 @@ std::string ResponseHead::intToString(int value) {
 }
 
 
-void ResponseHead::filecheck(std::string fullPath,
+bool ResponseHead::filecheck(std::string fullPath,
                              std::string path) {
     std::ifstream file(fullPath.c_str());
     if (file.good()) {
         fullPathToFile = fullPath;
         setLocation(path);
         file.close();
-    } else
-        throw std::runtime_error("404");
+		return true;
+    }
+	return false;
 }
 
 void ResponseHead::checkLocation(Config::Location location, HttpParser &parser) {
@@ -169,8 +170,12 @@ void ResponseHead::checkLocation(Config::Location location, HttpParser &parser) 
             modPath.erase(0, location_path.length());
 
         std::string fullPath = location.root + (parser.getPath() == location_path ? location.index : modPath);
-        std::cout << "fullpath :" << fullPath << std::endl;
-        filecheck(fullPath, parser.getPath());
+		if (filecheck(fullPath + location.index, parser.getPath()))
+			return;
+        // std::cout << "fullpath :" << fullPath << std::endl;
+		if (filecheck(fullPath, parser.getPath()))
+			return;
+		throw std::runtime_error("404");
 }
 
 void ResponseHead::checkRedirect() {

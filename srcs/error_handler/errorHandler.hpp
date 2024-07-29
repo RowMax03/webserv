@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errorHandler.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 20:04:08 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:54 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,3 +102,4 @@ public:
     }
 
 };
+

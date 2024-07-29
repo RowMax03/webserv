@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 19:57:50 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:26 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include <iostream>
 
 HttpParser::HttpParser(const Config::Server &server) : _server(&server), _contentLength(0), _contentLengthToRead(0) , recivedHeader(false), readingBody(false), isCgi(false) {
-	std::cout << "Parser Constructor" << std::endl;
+	// std::cout << "Parser Constructor" << std::endl;
 }
 
 HttpParser::~HttpParser() {
@@ -52,13 +52,15 @@ void HttpParser::updateRawRequest(const std::string& request) {
 	std::cout << "Raw Request: " << _rawRequest << std::endl;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
-		updateRequest(request);
+		updateRequest(_rawRequest);
 		parse();
+		std::cout << "Parsed request Version: " << _version << std::endl;
 	}
 	if (recivedHeader && readingBody) {
 		if (_contentLengthToRead <= 0) {
 			readingBody = false;
 			//updateRequest(request);
+			// updateRequest(request);
 			parseBody();
 		}
 	}
@@ -66,7 +68,7 @@ void HttpParser::updateRawRequest(const std::string& request) {
 
 // parse the raw request into the method, url, version, headers, and body
 void HttpParser::parse() {
-	std::cout << "Parsing request" << std::endl;
+	// std::cout << "Parsing request" << std::endl;
 	std::string line;
 
 	std::getline(_request, line);
@@ -91,7 +93,7 @@ void HttpParser::parse() {
 	parseUrl();
 	matchLocation();
 	validateHeader();
-	std::cout << "Parsed request" << std::endl;
+	// std::cout << "Parsed request" << std::endl;
 }
 
 // match the location block to the request
@@ -112,10 +114,17 @@ void HttpParser::matchLocation() {
 }
 
 void HttpParser::validateHeader() {
+	std::cout << "Validating header for Location :" << _location.path << std::endl;
 	if (std::find(_location.methods.begin(), _location.methods.end(), _method) == _location.methods.end())
 		throw std::runtime_error("405");
 	if (_location.client_max_body_size != -1 && _contentLength > _location.client_max_body_size)
 		throw std::runtime_error("413");
+	if (_method == "")
+		throw std::runtime_error("400");
+	if (_url == "")
+		throw std::runtime_error("400");
+	if (_version == "")
+		throw std::runtime_error("400");
 	if (_method == "POST" && _contentLength > 0)
 	{
 		readingBody = true;
@@ -149,6 +158,7 @@ bool HttpParser::checkRequestLine() {
 	if (_method.empty() || _url.empty() || _version.empty())
 		return false;
 	//else if (_method != "GET" && _method != "DELETE" && _method != "POST")
+	
 	//	return false;
 	else if (_version != "HTTP/1.0" && _version != "HTTP/1.1")
 		return false;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:25 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/09 23:36:26 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/28 16:14:02 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,9 @@ namespace Config {
     class Parser {
     private:
 
-        Server *_server;
+        Server _server;
 
-        Location *_location;
+        Location _location;
     public:
         Parser(const std::string &configFile);
 

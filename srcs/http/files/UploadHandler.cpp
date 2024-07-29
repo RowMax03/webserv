@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   UploadHandler.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/13 14:27:52 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 20:03:41 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:37 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,23 +26,32 @@ UploadHandler::~UploadHandler()
 void UploadHandler::parseBody()
 {
 	std::string boundary = "--" + _boundary;
-	std::string end_boundary = "--" + _boundary + "--";
+	std::string end_boundary = boundary + "--";
 	size_t start = _body.find(boundary);
-	size_t end = _body.find(end_boundary);
-	std::cout << "boundary: " << boundary << std::endl;
-	std::cout << "end_boundary: " << end_boundary << std::endl;
+	size_t end;
 
-	while (start != std::string::npos && end != std::string::npos)
+	while (start != std::string::npos)
 	{
-		std::string part = _body.substr(start + boundary.length(), end - start - boundary.length());
+		start += boundary.length(); // Move past the current boundary
+		end = _body.find(boundary, start); // Find the next boundary
+
+		if (end == std::string::npos) break; // If no more boundaries, exit loop
+
+		std::string part = _body.substr(start, end - start);
 		size_t filename_start = part.find("filename=\"") + 10;
+		if (filename_start == std::string::npos) continue; // Skip if no filename found
+
 		size_t filename_end = part.find("\"", filename_start);
+		if (filename_end == std::string::npos) continue; // Skip if filename end not found
+
 		std::string filename = part.substr(filename_start, filename_end - filename_start);
-		size_t content_start = part.find("\r\n\r\n") + 4;
-		std::string content = part.substr(content_start);
+		size_t content_start = part.find("\r\n\r\n", filename_end) + 4;
+		if (content_start == std::string::npos) continue; // Skip if content start not found
+
+		std::string content = part.substr(content_start, part.length() - content_start - 2); // Adjust for trailing \r\n
 		saveFile(filename, content);
-		start = _body.find(boundary, end);
-		end = _body.find(end_boundary, start);
+
+		start = end; // Move start to the end of the current part for the next iteration
 	}
 }
 
