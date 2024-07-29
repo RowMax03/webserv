@@ -113,7 +113,7 @@ std::string generateSession(const std::string& incomingCreds) {
     }
 
  bool checkSession(std::string cookie) {
-	std::string session_id = cookie.substr(cookie.find('=') + 1);
+	 std::string session_id = cookie.substr(cookie.find("session_id=") + 11);
 	if (_sessionStorage.find(session_id) != _sessionStorage.end()) {
 		return true;
 	} else {
@@ -123,7 +123,7 @@ std::string generateSession(const std::string& incomingCreds) {
  }
 
 bool deleteSession(std::string cookie) {
-    std::string session_id = cookie.substr(cookie.find('=') + 1);
+	 std::string session_id = cookie.substr(cookie.find("session_id=") + 11);
     if (_sessionStorage.find(session_id) != _sessionStorage.end()) {
         _sessionStorage.erase(session_id);
         return true;

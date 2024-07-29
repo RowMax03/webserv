@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 22:54:37 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 23:28:08 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,7 +150,7 @@ void Response::handlePost(){
 				std::cout << "Logout" << std::endl;
 				if(isSessionValid)
 				{
-					responseHead.setCookie("session_id=; Secure; HttpOnly; SameSite=Strict; Max-Age=0");
+					responseHead.setCookie("session_id=; HttpOnly; SameSite=Strict; Max-Age=0");
 					sessionHandler->deleteSession(sessionCookie);
 				}else{
 					throw std::runtime_error("401");
