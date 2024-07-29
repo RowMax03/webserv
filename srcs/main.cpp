@@ -6,7 +6,7 @@
 /*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:22:23 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 19:56:47 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:58:12 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,10 @@ int main(int argc, char* argv[])
         int port = config.servers[i].listen;
         if (usedPorts.find(port) != usedPorts.end()) {
             std::cerr << "Error: Port " << port << " is used more than once." << std::endl;
-            return 1; // Or handle the error as appropriate
+            return 1;
         }
         usedPorts.insert(port);
-        config.servers[i].validate(); // Validate the configuration
+        config.servers[i].validate();
     }
 
     for (size_t i = 0; i < config.servers.size(); i++) {

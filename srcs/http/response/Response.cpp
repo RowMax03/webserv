@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 20:24:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 21:09:45 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,6 @@ void Response::handlePost(){
 		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
 		UploadHandler uploadHandler(_location.uploadDir , Parser.getHeaders()["Content-Type"], Parser.getBody());
 	}else if (Parser.getHeaders()["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos) {
-		if (_location.auth) {
     		std::string sessionCookie = Parser.getHeaders()["Cookie"];
 			bool isSessionValid = sessionHandler->checkSession(sessionCookie);
             std::map<std::string, std::string> body = sessionHandler->parseBody(Parser.getBody());
@@ -161,18 +160,16 @@ void Response::handlePost(){
 					throw std::runtime_error("401");
 				}
 			}
-		}
 	}
 }
 
 void Response::handleGet(){
 	DIR *dir = opendir(responseHead.fullPathToFile.c_str());
-	if (responseHead.location.autoindex && dir != NULL) {
+	if (responseHead.location.autoindex && dir != NULL && responseBody.getBody().empty()) {
 		std::string directoryListing = generateDirectoryListing(responseHead.fullPathToFile, dir);
 		responseBody.setBody(directoryListing);
 		responseHead.setContentLength(intToString(directoryListing.size()));
-		responseHead.setStatusCode("201");
-		responseHead.setStatusMessage("Created");
+
 		closedir(dir);
 	} else if (responseBody.getBody().empty()) {
 		setMimeType(responseHead.fullPathToFile);
@@ -201,7 +198,8 @@ std::string Response::serialize() {
 	{
 		handleHead();
 	}
-	if(Parser.getMethod() == "GET" || Parser.getMethod() == "DELETE")
+
+	if(Parser.getMethod() == "GET" || Parser.getMethod() == "DELETE" || Parser.getMethod() == "POST")
 	{
 		handleBody();
 		body = responseBody.serialize();
