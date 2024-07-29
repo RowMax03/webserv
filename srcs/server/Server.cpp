@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 18:18:13 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:03:56 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,13 @@ void Server::addClient(ClientSocket *client)
 
 void Server::removeClient(size_t i)
 {
-	delete _clients[i - _server_count];
-	_clients.erase(_clients.begin() + i - _server_count);
-	_pollfds.erase(_pollfds.begin() + i);
+    if (i < _server_count || i >= _clients.size() + _server_count) {
+        std::cerr << "Invalid client index: " << i << std::endl;
+        return;
+    }
+    delete _clients[i - _server_count];
+    _clients.erase(_clients.begin() + i - _server_count);
+    _pollfds.erase(_pollfds.begin() + i);
 }
 
 void Server::timeoutCheck(size_t i)
@@ -125,8 +129,6 @@ void Server::pollin(size_t i)
 {
 	ClientSocket* client = _clients[i - _server_count];
 	client->setLastRequest();
-	// if (!client->pending_request)
-		// client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
 	int &content_length = client->handler.Parser.getContentLengthToRead();
 	// std::cout << "Content length: " << content_length << std::endl;
 	try {

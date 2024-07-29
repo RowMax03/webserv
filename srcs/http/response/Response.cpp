@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 17:40:00 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 20:24:11 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ Response::Response(const Config::Server &config, SessionHandler &sessionHandler,
         errorHandler(responseHead, responseBody, *_config),
         clients(clients),
 		Parser(config) {
-			
+
 }
 Response::Response(const Response &other) : _config(other._config),
                                             sessionHandler(other.sessionHandler),
@@ -88,8 +88,6 @@ void Response::handleHead(){
 
 			if(!sessionHandler->checkSession(Parser.getHeaders()["Cookie"]))
 			{
-				responseHead.setStatusCode("401");
-				responseHead.setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
 				throw std::runtime_error("401");
 			}
 		}
@@ -130,8 +128,40 @@ void Response::handlePost(){
 	if (Parser.getHeaders()["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		std::cout << "POST with file upload to: " << responseHead.location.uploadDir << std::endl;
 		UploadHandler uploadHandler(_location.uploadDir , Parser.getHeaders()["Content-Type"], Parser.getBody());
-		responseHead.setStatusCode("201");
-		responseHead.setStatusMessage("Created");
+	}else if (Parser.getHeaders()["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos) {
+		if (_location.auth) {
+    		std::string sessionCookie = Parser.getHeaders()["Cookie"];
+			bool isSessionValid = sessionHandler->checkSession(sessionCookie);
+            std::map<std::string, std::string> body = sessionHandler->parseBody(Parser.getBody());
+			if(body["form"] == "login")
+			{
+    			if (!isSessionValid) {
+            	std::string username = body["name"];
+            	std::string password = body["password"];
+				std::cout << "Username: " << username << std::endl;
+				std::cout << "Password: " << password << std::endl;
+            	Login login(username, password);
+            	if (sessionHandler->validateCredentials(login.Base64Login)) {
+                	responseHead.setCookie(sessionHandler->generateSession(login.Base64Login));
+					responseHead.setStatusCode("201");
+					responseHead.setStatusMessage("Created");
+				} else {
+            	    throw std::runtime_error("401");
+            	}
+				}
+			}else if(body["form"] == "logout") {
+				std::cout << "Logout" << std::endl;
+				if(isSessionValid)
+				{
+									std::cout << "Logout2" << std::endl;
+
+					responseHead.setCookie("session_id=; Secure; HttpOnly; SameSite=Strict; Max-Age=0");
+					sessionHandler->deleteSession(sessionCookie);
+				}else{
+					throw std::runtime_error("401");
+				}
+			}
+		}
 	}
 }
 
@@ -151,10 +181,10 @@ void Response::handleGet(){
 }
 
 void Response::handleDelete(){
-//	FileHandler fileHandler();
-//	fileHandler.deleteFile(responseHead.fullPathToFile);
-//	responseHead.setStatusCode("204");
-//	responseHead.setStatusMessage("No Content");
+	FileHandler fileHandler;
+	fileHandler.deleteFile(responseHead.fullPathToFile);
+	responseHead.setStatusCode("204");
+	responseHead.setStatusMessage("No Content");
 }
 
 
@@ -171,7 +201,7 @@ std::string Response::serialize() {
 	{
 		handleHead();
 	}
-	if(Parser.getMethod() == "GET")
+	if(Parser.getMethod() == "GET" || Parser.getMethod() == "DELETE")
 	{
 		handleBody();
 		body = responseBody.serialize();
@@ -198,22 +228,49 @@ std::string Response::removeTrailingSlash(const std::string &input) {
 }
 
 std::string Response::generateDirectoryListing(const std::string &path, DIR *dir) {
-    struct dirent *ent;
-    std::ostringstream oss;
-    if ((dir = opendir(path.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            oss << "<a href='" << removeTrailingSlash(Parser.getPath()) << "/" << ent->d_name << "'>"
-                << ent->d_name << "</a>" << "<br>";
-        }
-        closedir(dir);
-    } else {
-		throw std::runtime_error("404");
-        oss << "Could not open directory";
-    }
-    std::string result = oss.str();
-    return result;
+	struct dirent *ent;
+	std::ostringstream oss;
+	if ((dir = opendir(path.c_str())) != NULL) {
+		oss << "<script>"
+			<< "function sendDeleteRequest(filePath) {"
+			<< "  fetch(filePath, { method: 'DELETE' })"
+			<< "    .then(response => {"
+			<< "      if (response.ok) {"
+			<< "        window.location.reload();"
+			<< "      } else {"
+			<< "        alert('Error: ' + response.statusText);"
+			<< "      }"
+			<< "    });"
+			<< "}"
+			<< "</script>";
+		while ((ent = readdir(dir)) != NULL) {
+			// Skip the current and parent directory entries
+			std::string modPath = path;
+			if (modPath.find(_location.root) == 0)
+            	modPath = _location.path + modPath.erase(0, _location.root.length());
+			if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+				oss << "<a href='" << modPath + '/' + ent->d_name << "'>" << ent->d_name << "</a><br>";
+				continue;
+			}
+			// Generate the link for the directory entry
+			oss << "<a href='" << removeTrailingSlash(path) << "/" << ent->d_name << "'>"
+				<< ent->d_name << "</a>";
+			if (std::find(_location.methods.begin(), _location.methods.end(), "DELETE") == _location.methods.end())
+			{
+				oss << "<br>";
+				continue;
+			}
+			// Add a button for the directory entry that calls sendDeleteRequest when clicked
+			oss << "<button onclick=\"sendDeleteRequest('" << removeTrailingSlash(modPath) << "/" << ent->d_name << "')\">Delete</button>"
+				<< "<br>";
+		}
+		closedir(dir);
+	} else {
+		// Directory could not be opened; throw an exception
+		throw std::runtime_error("404: Directory not found");
+	}
+	return oss.str();
 }
-
 
 void Response::setMimeType(const std::string& filePath) {
 	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);

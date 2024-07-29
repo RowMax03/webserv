@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 21:37:14 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:54 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,6 @@ public:
             _responseHead.setStatusCode("418");
             _responseHead.setStatusMessage("im a tea pot");
 			setErrorPage();
-
         }
     }
 

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/13 14:27:52 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 21:27:03 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:37 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,12 +57,18 @@ void UploadHandler::parseBody()
 
 void UploadHandler::saveFile(const std::string &filename, const std::string &content)
 {
+	try{
 	std::cout << "Saving file: " << filename << " to: " << _location << std::endl;
 	std::ofstream file(_location + "/" + filename);
 	if (!file.is_open())
 		throw std::runtime_error("500");
 	file << content;
 	file.close();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
 }
 
 

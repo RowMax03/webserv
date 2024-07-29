@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 19:57:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 17:38:04 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:42:08 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,4 +38,10 @@ std::string FileHandler::readFile(const std::string &path) {
 		return contents.str();
 	}
 	throw std::runtime_error("404");
+}
+
+void FileHandler::deleteFile(const std::string &path) {
+	// std::cout << "Deleting file: " << path << std::endl;
+	if (remove(path.c_str()) != 0)
+		throw std::runtime_error("500");
 }

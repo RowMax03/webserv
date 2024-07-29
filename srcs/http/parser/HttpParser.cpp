@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 18:05:45 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:06:26 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 
 void HttpParser::updateRawRequest(const std::string& request) {
 	_rawRequest += request;
-	// std::cout << "Raw Request: " << _rawRequest << std::endl;
+	std::cout << "Raw Request: " << _rawRequest << std::endl;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
 		updateRequest(_rawRequest);
@@ -59,6 +59,7 @@ void HttpParser::updateRawRequest(const std::string& request) {
 	if (recivedHeader && readingBody) {
 		if (_contentLengthToRead <= 0) {
 			readingBody = false;
+			//updateRequest(request);
 			// updateRequest(request);
 			parseBody();
 		}
