@@ -3,28 +3,48 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:22:23 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 15:29:12 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:56:47 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server/Server.hpp"
 #include "conf_parser/ConfigParser.hpp"
+#include <set>
+#include <iostream>
+#include <exception>
 
-int main()
+int main(int argc, char* argv[])
 {
-	//relative Path from Project root
-    Config::Parser config("tester.conf");
-    for (size_t i=0; config.servers.size() > i; i++) {
-        config.servers[i].validate();
-        std::cout << "\nPrinting configuration for server" << i << ":" << std::endl;
+    std::set<int> usedPorts;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <config_path>" << std::endl;
+        return 1;
+    }
+
+	Config::Parser config(argv[1]);
+
+
+    for (size_t i = 0; i < config.servers.size(); ++i) {
+        int port = config.servers[i].listen;
+        if (usedPorts.find(port) != usedPorts.end()) {
+            std::cerr << "Error: Port " << port << " is used more than once." << std::endl;
+            return 1; // Or handle the error as appropriate
+        }
+        usedPorts.insert(port);
+        config.servers[i].validate(); // Validate the configuration
+    }
+
+    for (size_t i = 0; i < config.servers.size(); i++) {
+        std::cout << "\nPrinting configuration for server " << i << ":" << std::endl;
         config.servers[i].print();
     }
+
     Server server(config);
-	std::cout << "Server started" << std::endl;
+    std::cout << "Server started" << std::endl;
     server.Start();
 
-	return 0;
+    return 0;
 }
