@@ -96,7 +96,7 @@ std::string generateSession(const std::string& incomingCreds) {
         std::string session_id = generateUniqueSessionId();
 
         _sessionStorage[session_id] = "is existent shit session ";
-		return ("session_id=" + session_id + "; Secure; HttpOnly; SameSite=Strict; Max-Age=86400");
+		return ("session_id=" + session_id + "; HttpOnly; SameSite=Strict; Max-Age=86400");
     }else
 	{
 		throw std::runtime_error("401");

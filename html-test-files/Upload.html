@@ -50,11 +50,10 @@
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Success:', data);
+            console.log("Success:", data);
             // Handle success here (e.g., redirecting to another page)
         })
         .catch((error) => {
-            console.error('Error:', error);
             // Handle errors here
         });
     };
@@ -79,12 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Logout successful');
                 // Handle successful logout here (e.g., redirecting to a login page)
             } else {
-                console.error('Logout failed');
                 // Handle logout failure here
             }
         })
         .catch((error) => {
-            console.error('Error:', error);
+            console.error("Error:", error);
             // Handle errors here
         });
     };
