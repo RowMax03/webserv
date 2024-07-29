@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 22:08:57 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 22:54:37 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,8 +137,6 @@ void Response::handlePost(){
     			if (!isSessionValid) {
             	std::string username = body["name"];
             	std::string password = body["password"];
-				std::cout << "Username: " << username << std::endl;
-				std::cout << "Password: " << password << std::endl;
             	Login login(username, password);
             	if (sessionHandler->validateCredentials(login.Base64Login)) {
                 	responseHead.setCookie(sessionHandler->generateSession(login.Base64Login));
@@ -152,8 +150,6 @@ void Response::handlePost(){
 				std::cout << "Logout" << std::endl;
 				if(isSessionValid)
 				{
-									std::cout << "Logout2" << std::endl;
-
 					responseHead.setCookie("session_id=; Secure; HttpOnly; SameSite=Strict; Max-Age=0");
 					sessionHandler->deleteSession(sessionCookie);
 				}else{
