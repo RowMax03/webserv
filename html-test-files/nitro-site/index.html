@@ -137,6 +137,94 @@
     </div>
   </section>
   <section class="section">
+	<div class="container">
+		<div class="content theme-default-content">
+  <h2>Upload File</h2>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+	  <label for="file">Choose file to upload:</label>
+	  <input type="file" id="file" name="file"><br><br>
+	  <button type="submit">Upload File</button>
+	  </form>
+	  <h2>login form</h2>
+	  <form id="loginForm" action="/login" method="post">
+		  <label for="name">User name:</label>
+		  <input type="text" id="name" name="name"><br>
+		  <label for="password">password:</label>
+		  <input type="password" id="password" name="password"><br>
+		  <input type="hidden" value="login" name="form" id="form"><br>
+		  <button type="submit"  >Login</button>
+		  </form>
+		  <form id="logoutForm" action="/logout" method="post" enctype="application/x-www-form-urlencoded">
+			  <input type="hidden" value="logout" name="form" id="form"><br>
+			  <button type="submit">Logout</button>
+			  </form>
+			  <script>
+				  document.addEventListener('DOMContentLoaded', function() {
+					  var form = document.getElementById('loginForm');
+					  
+					  form.onsubmit = function(event) {
+						  event.preventDefault(); // Prevent the form from submitting the traditional way
+						  
+						  var formData = new FormData(form);
+						  var encodedData = [];
+						  formData.forEach(function(value, key) {
+							  encodedData.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+							  });
+							  var urlEncodedData = encodedData.join('&');
+							  
+							  fetch('/login', {
+								  method: 'POST',
+								  headers: {
+									  'Content-Type': 'application/x-www-form-urlencoded',
+									  },
+									  body: urlEncodedData,
+									  })
+									  .then(response => response.json())
+									  .then(data => {
+										  console.log('Success:', data);
+										  // Handle success here (e.g., redirecting to another page)
+										  })
+										  .catch((error) => {
+											  console.error('Error:', error);
+											  // Handle errors here
+											  });
+											  };
+											  });
+											  document.addEventListener('DOMContentLoaded', function() {
+												  var form = document.getElementById('logoutForm');
+												  form.onsubmit = function(event) {
+													  event.preventDefault(); // Prevent the form from submitting the traditional way
+													  
+													  var formData = new FormData(form);
+													  var encodedData = new URLSearchParams(formData).toString();
+													  
+													  fetch('/logout', {
+														  method: 'POST',
+														  headers: {
+															  'Content-Type': 'application/x-www-form-urlencoded',
+															  },
+															  body: encodedData,
+															  })
+															  .then(response => {
+																  if(response.ok) {
+																	  console.log('Logout successful');
+																	  // Handle successful logout here (e.g., redirecting to a login page)
+																	  } else {
+																		  console.error('Logout failed');
+																		  // Handle logout failure here
+																		  }
+																		  })
+																		  .catch((error) => {
+																			  console.error('Error:', error);
+																			  // Handle errors here
+																			  });
+																			  };
+																			  });
+	</script>
+	</div>
+	</div>
+	</section>
+  <section class="section">
     <div class="container">
 
       <div class="content theme-default-content">
