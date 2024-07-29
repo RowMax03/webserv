@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:02 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 19:06:54 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 21:54:19 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ public:
 
 
     void handleErrorCode(const std::string& statusCode) {
+		std::cout << "Error code: " << statusCode << std::endl;
         if (statusCode == "400") {
             _responseHead.setStatusCode("400");
             _responseHead.setStatusMessage("Bad Request");
@@ -62,7 +63,19 @@ public:
             _responseHead.setStatusCode("405");
             _responseHead.setStatusMessage("Method Not Allowed");
             setErrorPage();
-        } else if (statusCode == "500") {
+		} else if (statusCode == "413") {
+			_responseHead.setStatusCode("413");
+			_responseHead.setStatusMessage("Payload Too Large");
+			setErrorPage();
+		} else if (statusCode == "414") {
+			_responseHead.setStatusCode("414");
+			_responseHead.setStatusMessage("URI Too Long");
+			setErrorPage();
+		} else if (statusCode == "415") {
+			_responseHead.setStatusCode("415");
+			_responseHead.setStatusMessage("Unsupported Media Type");
+			setErrorPage();
+		} else if (statusCode == "500") {
             _responseHead.setStatusCode("500");
             _responseHead.setStatusMessage("Internal Server Error");
             setErrorPage();
