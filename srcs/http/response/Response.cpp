@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 21:09:45 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 22:08:57 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,14 +104,14 @@ void Response::handleHead(){
 void Response::handleBody(){
 	try {
 		std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
-		if(Parser.getMethod() == "POST") {
+		if (Parser.isCgi) {
+			handleCgi();
+		} else if(Parser.getMethod() == "POST") {
 			handlePost();
 		} else if (Parser.getMethod() == "GET") {
 			handleGet();
 		} else if (Parser.getMethod() == "DELETE") {
 			handleDelete();
-		} else if (Parser.isCgi) {
-			handleCgi();
 		}else {
 			throw std::runtime_error("405");
 		}
@@ -251,7 +251,7 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
 				continue;
 			}
 			// Generate the link for the directory entry
-			oss << "<a href='" << removeTrailingSlash(path) << "/" << ent->d_name << "'>"
+			oss << "<a href='" << removeTrailingSlash(modPath) << "/" << ent->d_name << "'>"
 				<< ent->d_name << "</a>";
 			if (std::find(_location.methods.begin(), _location.methods.end(), "DELETE") == _location.methods.end())
 			{

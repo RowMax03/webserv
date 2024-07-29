@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:14 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/27 17:29:31 by nscheefe         ###   ########.fr       */
+/*   Updated: 2024/07/29 21:58:13 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ namespace Config {
                 index = other.index;
                 uploadDir = other.uploadDir;
                 auth = other.auth;
+				client_max_body_size = other.client_max_body_size;
             }
             return *this;
         }
@@ -102,10 +103,11 @@ namespace Config {
 
         ~Location() {}
         void print() const {
-            std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
-                      << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
-                      << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
-                      << "\n\t\t\tautoindex=" << (autoindex ? "on":"off") << "\n\t\t\tindex=" << index << "\n\t\t\tCgi="<< (allowCgi ? "on" : "off" ) << "\n\t\t\tUpload dir="<< uploadDir << std::endl;
+			std::cout << "\t\tLocation: \n\t\t\tpath=" << path << "\n\t\t\tmethods=" << (methods.size() > 0 ? methods[0] : "")
+					  << " " << (methods.size() > 1 ? methods[1] : "") << " " << (methods.size() > 2 ? methods[2] : "") << " " << (methods.size() > 3 ? methods[3] : "") << "\n\t\t\tredirect_status=" << redirect_status
+					  << "\n\t\t\tredirect_url=" << redirect_url << "\n\t\t\troot=" << root
+					  << "\n\t\t\tautoindex=" << (autoindex ? "on":"off") << "\n\t\t\tindex=" << index << "\n\t\t\tCgi="<< (allowCgi ? "on" : "off" ) << "\n\t\t\tUpload dir="<< uploadDir
+					  << "\n\t\t\tclient_max_body_size=" << client_max_body_size << std::endl;
         }
 
         void validate() {

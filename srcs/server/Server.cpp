@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 19:03:56 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 22:07:21 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,7 @@ void Server::pollout(size_t i)
 	const char *raw = response.c_str();
 	try {
 		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
-		// std::cout << "Sending: " << response << std::endl;
+		std::cout << "Sending: " << response << std::endl;
 		removeClient(i);
 		// _pollfds[i].events = POLLIN;
 	}
