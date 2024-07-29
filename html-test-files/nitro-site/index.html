@@ -152,6 +152,7 @@
 		  <label for="password">password:</label>
 		  <input type="password" id="password" name="password"><br>
 		  <input type="hidden" value="login" name="form" id="form"><br>
+		  <div style="display: none;" id="login_success">Logged in</div>
 		  <button type="submit"  >Login</button>
 		  </form>
 		  <form id="logoutForm" action="/logout" method="post" enctype="application/x-www-form-urlencoded">
@@ -179,9 +180,14 @@
 									  },
 									  body: urlEncodedData,
 									  })
+									  .then(response => { if(response.status === 201) alert('Logged in successfully')})
 									  .then(response => response.json())
 									  .then(data => {
-										  console.log('Success:', data);
+										alert('Logged in successfully');
+										document.addEventListener('DOMContentLoaded', function() {
+    // Now it's safe to show the login success message
+    document.getElementById('login_success').style.display = 'block';
+});
 										  // Handle success here (e.g., redirecting to another page)
 										  })
 										  .catch((error) => {
@@ -205,6 +211,7 @@
 															  },
 															  body: encodedData,
 															  })
+															  .then(response => { if(response.status === 201) alert('Logged in successfully')})
 															  .then(response => {
 																  if(response.ok) {
 																	  console.log('Logout successful');
