@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
+/*   By: nscheefe <nscheefe@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:36:32 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 16:16:47 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 19:59:28 by nscheefe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,12 @@
 namespace Config {
 
     Parser::Parser(const std::string &configFile) {
+		try {
         parseConfigFile(configFile);
+		} catch (std::exception &e) {
+			std::cerr << "Error: " << e.what() << std::endl;
+			exit(1);
+		}
     }
 
     Parser::Parser(const Parser &other)
