@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 16:47:50 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 17:40:00 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,7 +218,6 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
 void Response::setMimeType(const std::string& filePath) {
 	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-
     std::map<std::string, std::string> mimeTypes;
     mimeTypes["html"] = "text/html";
     mimeTypes["txt"] = "text/plain";
@@ -257,8 +256,10 @@ void Response::setMimeType(const std::string& filePath) {
     if (it != mimeTypes.end()) {
         responseHead.setContentType(it->second);
     }
-	else
+	else if (extension != "")
     	responseHead.setContentType("application/octet-stream");// Default MIME type for unknown/other files
+	else
+		responseHead.setContentType("text/plain");
 }
 
 std::string Response::intToString(int value) {

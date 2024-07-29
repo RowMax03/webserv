@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/17 13:05:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 15:31:51 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 18:18:13 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Server::Server(const Config::Parser &conf) : _conf(&conf) , _server_count(conf.s
 	_sessionHandler = SessionHandler();
 	for (size_t i = 0; i < _server_count; i++) {
 		_servers.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, INADDR_ANY, conf.servers[i].listen));
-		_servers[i]->listen_socket(1024);
+		_servers[i]->listen_socket(1020);
 		_pollfds.push_back((pollfd){_servers[i]->getFD(), POLLIN, 0});
 		for (std::map<std::string, Config::Location>::const_iterator it = conf.servers[i].locations.begin(); it != conf.servers[i].locations.end(); ++it) {
 			_locations[it->first] = (new LocationHandler(it->second, i));
@@ -58,7 +58,7 @@ void Server::timeoutCheck(size_t i)
 {
 	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = now - _clients[i - _server_count]->getLastRequest();
-	if (elapsed_seconds.count() > 10) { //timeout of 10 seconds
+	if (elapsed_seconds.count() > 5) { //timeout of 10 seconds
 		std::cout << "Client timed out at: " << elapsed_seconds.count() << std::endl;
 		removeClient(i);
 	}
@@ -84,9 +84,13 @@ int Server::Start()
 {
 	while (1) {
 		// poll with timeout of 10 seconds
-		int ret = poll(_pollfds.data(), _pollfds.size(), 10000);
+		int ret = poll(_pollfds.data(), _pollfds.size(), 5000);
 		if (ret < 0)
 			throw std::runtime_error("poll failed");
+		else if (ret == 0)
+		{
+			timeoutCheckAll();
+		}
 		for (size_t i = 0; i < _pollfds.size(); i++) {
 			if (_pollfds[i].revents == 0 || (i > _server_count - 1 && !checkRevents(i))) {
 				continue;
@@ -108,6 +112,13 @@ int Server::Start()
 		}
 	}
 	return 0;
+}
+
+void Server::timeoutCheckAll()
+{
+	for (size_t i = _server_count; i < _pollfds.size(); i++) {
+		timeoutCheck(i);
+	}
 }
 
 void Server::pollin(size_t i)
@@ -171,8 +182,9 @@ void Server::pollout(size_t i)
 	const char *raw = response.c_str();
 	try {
 		_clients[i - _server_count]->write_socket(raw, response.size()); //will be a sender function later
-		std::cout << "Sending: " << response << std::endl;
-		_pollfds[i].events = POLLIN;
+		// std::cout << "Sending: " << response << std::endl;
+		removeClient(i);
+		// _pollfds[i].events = POLLIN;
 	}
 	catch (const std::exception &e){
 		removeClient(i);

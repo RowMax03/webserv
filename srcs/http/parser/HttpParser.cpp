@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 16:10:46 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/29 16:40:57 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 18:05:45 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ HttpParser &HttpParser::operator=(const HttpParser &other) {
 
 void HttpParser::updateRawRequest(const std::string& request) {
 	_rawRequest += request;
-	std::cout << "Raw Request: " << _rawRequest << std::endl;
+	// std::cout << "Raw Request: " << _rawRequest << std::endl;
 	if (!recivedHeader && _rawRequest.find("\r\n\r\n") != std::string::npos) {
 		recivedHeader = true;
 		updateRequest(_rawRequest);
@@ -114,7 +114,7 @@ void HttpParser::matchLocation() {
 
 void HttpParser::validateHeader() {
 	std::cout << "Validating header for Location :" << _location.path << std::endl;
-	if (_method != "HEAD" && std::find(_location.methods.begin(), _location.methods.end(), _method) == _location.methods.end())
+	if (std::find(_location.methods.begin(), _location.methods.end(), _method) == _location.methods.end())
 		throw std::runtime_error("405");
 	if (_location.client_max_body_size != -1 && _contentLength > _location.client_max_body_size)
 		throw std::runtime_error("413");

@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 19:57:41 by mreidenb          #+#    #+#             */
-/*   Updated: 2024/07/28 20:57:40 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 17:38:04 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ FileHandler &FileHandler::operator=(const FileHandler &src) {
 
 std::string FileHandler::readFile(const std::string &path) {
 	// std::cout << "Reading file: " << path << std::endl;
+	if (opendir(path.c_str()))
+		throw std::runtime_error("404");
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
 	if (file)
 	{
