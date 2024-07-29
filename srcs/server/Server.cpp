@@ -49,9 +49,13 @@ void Server::addClient(ClientSocket *client)
 
 void Server::removeClient(size_t i)
 {
-	delete _clients[i - _server_count];
-	_clients.erase(_clients.begin() + i - _server_count);
-	_pollfds.erase(_pollfds.begin() + i);
+    if (i < _server_count || i >= _clients.size() + _server_count) {
+        std::cerr << "Invalid client index: " << i << std::endl;
+        return;
+    }
+    delete _clients[i - _server_count];
+    _clients.erase(_clients.begin() + i - _server_count);
+    _pollfds.erase(_pollfds.begin() + i);
 }
 
 void Server::timeoutCheck(size_t i)
@@ -112,33 +116,36 @@ int Server::Start()
 
 void Server::pollin(size_t i)
 {
-	ClientSocket* client = _clients[i - _server_count];
-	client->setLastRequest();
-	// if (!client->pending_request)
-		// client->handler = Response(_conf->servers[client->getServerIndex()], _sessionHandler, _clients.size());
-	int &content_length = client->handler.Parser.getContentLengthToRead();
-	std::cout << "Content length: " << content_length << std::endl;
-	try {
-		if (client->handler.Parser.recivedHeader == false) {
-			client->pending_request = true;
-			client->handler.recive(readHeaders(i));
-		}
-		else if (client->handler.Parser.readingBody == true)
-			client->handler.recive(readBody(i, content_length));
-		if (content_length == 0 && client->handler.Parser.recivedHeader == true && client->handler.Parser.readingBody == false)
-			client->pending_request = false;
-	} catch (const std::exception &e) {
-		std::cerr << e.what() << std::endl;
-		removeClient(i);
-		return;
-	}
-	if (!client->pending_request || (!client->handler.Parser.readingBody && client->handler.Parser.recivedHeader)) {
-		client->setResponse(client->handler.serialize());
-		client->handler.Parser.reset();
-		_pollfds[i].events = POLLOUT;
-		return;
-	}
-	std::cout << "Request not fully received, conent length left: " << content_length << std::endl;
+    ClientSocket* client = _clients[i - _server_count];
+    if (client == NULL) {
+        std::cerr << "Client is null at index: " << i << std::endl;
+        return;
+    }
+    client->setLastRequest();
+    int &content_length = client->handler.Parser.getContentLengthToRead();
+    std::cout << "Content length: " << content_length << std::endl;
+    try {
+        if (client->handler.Parser.recivedHeader == false) {
+            client->pending_request = true;
+            client->handler.recive(readHeaders(i));
+        } else if (client->handler.Parser.readingBody == true) {
+            client->handler.recive(readBody(i, content_length));
+        }
+        if (content_length == 0 && client->handler.Parser.recivedHeader == true && client->handler.Parser.readingBody == false) {
+            client->pending_request = false;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        removeClient(i);
+        return;
+    }
+    if (!client->pending_request || (!client->handler.Parser.readingBody && client->handler.Parser.recivedHeader)) {
+        client->setResponse(client->handler.serialize());
+        client->handler.Parser.reset();
+        _pollfds[i].events = POLLOUT;
+        return;
+    }
+    std::cout << "Request not fully received, content length left: " << content_length << std::endl;
 }
 
 // Function to read headers and return the headers as a string
