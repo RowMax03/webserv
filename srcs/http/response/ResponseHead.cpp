@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:36 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 20:56:33 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 16:32:30 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,8 @@ void ResponseHead::setDefault(Config::Location location, HttpParser &parser, std
 
 std::string ResponseHead::serialize(HttpParser &parser) {
     std::ostringstream oss;
-    if (!parser.getVersion().empty() && !getStatusCode().empty() && !getStatusMessage().empty())
-        oss << parser.getVersion() << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
+	std::string version = parser.getVersion() == "" ? "HTTP/1.1" : parser.getVersion();
+        oss << version << " " << getStatusCode() << " " << getStatusMessage() << "\r\n";
     if (!this->ServerName.empty())
         oss << "Server: " << this->ServerName << "\r\n";
     if (!getCurrentDate().empty())

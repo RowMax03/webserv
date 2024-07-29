@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/28 21:32:48 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 16:47:50 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void Response::recive(const std::string &request) {
 		Parser.updateRawRequest(request);
 	}
 	catch (const std::exception &e) {
-		std::cerr << e.what() << std::endl;
+		std::cerr << "Error in recive: " << e.what() << std::endl;
 		errorHandler.handleErrorCode(e.what());
 	}
 }
@@ -86,14 +86,12 @@ void Response::handleHead(){
 		if (_location.auth == true)
 		{
 
-			if(!sessionHandler->checkSession(Parser.getHeaders()["Cookie"])) //@if header access not set
+			if(!sessionHandler->checkSession(Parser.getHeaders()["Cookie"]))
 			{
 				responseHead.setStatusCode("401");
 				responseHead.setWwwAuthenticate("Basic realm='accress Controll sessin handling from webserv', charset='UTF-8'");
 				throw std::runtime_error("401");
-			} //@else if header access set
-			//else throw 401 with www authenticat
-			//generateSession
+			}
 		}
 
 	}
@@ -107,9 +105,8 @@ void Response::handleHead(){
 
 void Response::handleBody(){
 	try {
-		// std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
-		if(Parser.getMethod() == "POST")
-		{
+		std::cout << "Handle Body, Method: " << Parser.getMethod() << std::endl;
+		if(Parser.getMethod() == "POST") {
 			handlePost();
 		} else if (Parser.getMethod() == "GET") {
 			handleGet();
@@ -170,10 +167,13 @@ void Response::handleCgi(){
 std::string Response::serialize() {
 	std::string head;
 	std::string body;
-	handleHead();
-	handleBody();
-	if(Parser.getMethod() != "POST" || Parser.getMethod() != "DELETE")
+	if (responseHead.getStatusCode() == "")
 	{
+		handleHead();
+	}
+	if(Parser.getMethod() == "GET")
+	{
+		handleBody();
 		body = responseBody.serialize();
 	}
 	if (!Parser.isCgi) {
