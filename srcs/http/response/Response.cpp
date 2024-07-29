@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 20:18:11 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 20:24:11 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,6 +255,11 @@ std::string Response::generateDirectoryListing(const std::string &path, DIR *dir
 			// Generate the link for the directory entry
 			oss << "<a href='" << removeTrailingSlash(path) << "/" << ent->d_name << "'>"
 				<< ent->d_name << "</a>";
+			if (std::find(_location.methods.begin(), _location.methods.end(), "DELETE") == _location.methods.end())
+			{
+				oss << "<br>";
+				continue;
+			}
 			// Add a button for the directory entry that calls sendDeleteRequest when clicked
 			oss << "<button onclick=\"sendDeleteRequest('" << removeTrailingSlash(modPath) << "/" << ent->d_name << "')\">Delete</button>"
 				<< "<br>";
