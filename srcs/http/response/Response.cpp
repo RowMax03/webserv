@@ -6,7 +6,7 @@
 /*   By: mreidenb <mreidenb@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 23:35:13 by nscheefe          #+#    #+#             */
-/*   Updated: 2024/07/29 19:06:03 by mreidenb         ###   ########.fr       */
+/*   Updated: 2024/07/29 20:18:11 by mreidenb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,10 +181,10 @@ void Response::handleGet(){
 }
 
 void Response::handleDelete(){
-//	FileHandler fileHandler();
-//	fileHandler.deleteFile(responseHead.fullPathToFile);
-//	responseHead.setStatusCode("204");
-//	responseHead.setStatusMessage("No Content");
+	FileHandler fileHandler;
+	fileHandler.deleteFile(responseHead.fullPathToFile);
+	responseHead.setStatusCode("204");
+	responseHead.setStatusMessage("No Content");
 }
 
 
@@ -201,7 +201,7 @@ std::string Response::serialize() {
 	{
 		handleHead();
 	}
-	if(Parser.getMethod() == "GET")
+	if(Parser.getMethod() == "GET" || Parser.getMethod() == "DELETE")
 	{
 		handleBody();
 		body = responseBody.serialize();
@@ -228,22 +228,44 @@ std::string Response::removeTrailingSlash(const std::string &input) {
 }
 
 std::string Response::generateDirectoryListing(const std::string &path, DIR *dir) {
-    struct dirent *ent;
-    std::ostringstream oss;
-    if ((dir = opendir(path.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            oss << "<a href='" << removeTrailingSlash(Parser.getPath()) << "/" << ent->d_name << "'>"
-                << ent->d_name << "</a>" << "<br>";
-        }
-        closedir(dir);
-    } else {
-		throw std::runtime_error("404");
-        oss << "Could not open directory";
-    }
-    std::string result = oss.str();
-    return result;
+	struct dirent *ent;
+	std::ostringstream oss;
+	if ((dir = opendir(path.c_str())) != NULL) {
+		oss << "<script>"
+			<< "function sendDeleteRequest(filePath) {"
+			<< "  fetch(filePath, { method: 'DELETE' })"
+			<< "    .then(response => {"
+			<< "      if (response.ok) {"
+			<< "        window.location.reload();"
+			<< "      } else {"
+			<< "        alert('Error: ' + response.statusText);"
+			<< "      }"
+			<< "    });"
+			<< "}"
+			<< "</script>";
+		while ((ent = readdir(dir)) != NULL) {
+			// Skip the current and parent directory entries
+			std::string modPath = path;
+			if (modPath.find(_location.root) == 0)
+            	modPath = _location.path + modPath.erase(0, _location.root.length());
+			if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+				oss << "<a href='" << modPath + '/' + ent->d_name << "'>" << ent->d_name << "</a><br>";
+				continue;
+			}
+			// Generate the link for the directory entry
+			oss << "<a href='" << removeTrailingSlash(path) << "/" << ent->d_name << "'>"
+				<< ent->d_name << "</a>";
+			// Add a button for the directory entry that calls sendDeleteRequest when clicked
+			oss << "<button onclick=\"sendDeleteRequest('" << removeTrailingSlash(modPath) << "/" << ent->d_name << "')\">Delete</button>"
+				<< "<br>";
+		}
+		closedir(dir);
+	} else {
+		// Directory could not be opened; throw an exception
+		throw std::runtime_error("404: Directory not found");
+	}
+	return oss.str();
 }
-
 
 void Response::setMimeType(const std::string& filePath) {
 	std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
